@@ -1,107 +1,19 @@
 // bb-plugin-lazygit — a BB plugin backend entry.
 //
-// Auto-creates a "Lazygit" panel tab in a thread's right panel the first time
-// the thread is opened — like the built-in Thread Info and Diff tabs. The tab
-// is plugin-owned (a `plugin-panel` tab) so the host can select it and replace
-// the "New tab" launcher when the user picks Lazygit from the panel's Actions
-// list; the actual lazygit process runs in a persistent environment-scoped
-// terminal session that the frontend panel attaches to over RPC (xterm.js).
-//
-// Session creation is lazy: the tab is cheap and appears on first view, the
-// lazygit process starts when the tab is first activated.
-import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
-import { z } from "zod";
+// Composes the submodules in server/: reads settings, wires the RPC contract
+// (server/contract.ts) to the tab manager, terminal session manager, and repo
+// helper, and registers the `bb lazygit` CLI. Kept deliberately thin — the
+// logic lives in server/{state,env,tabs,terminal,repo}.ts.
+import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import { rpcContract } from "./server/contract";
+import { createEnvironment } from "./server/env";
+import { createRepo } from "./server/repo";
+import { createPluginState } from "./server/state";
+import { createTabManager } from "./server/tabs";
+import { createTerminalManager } from "./server/terminal";
 
-// TerminalSession is not a root export; derive it from the SDK area type.
-type TerminalSession = Awaited<
-  ReturnType<BbPluginApi["sdk"]["terminals"]["get"]>
->;
-
-/** Identity of the plugin-owned panel tab in a thread's tab list. */
-const PLUGIN_ID = "lazygit";
-const PANEL_ACTION_ID = "lazygit";
-const TAB_ID = "lazygit";
-const TAB_TITLE = "Lazygit";
-const TERMINAL_TITLE = "Lazygit";
-/** kv key holding per-thread records (tab creation + terminal session). */
-const STATE_KEY = "threads";
-/** Bound the kv record so long-lived installs do not grow it without limit. */
-const STATE_MAX_THREADS = 500;
-/** Bytes of scrollback replayed when a panel (re)attaches to a live session. */
-const REPLAY_TAIL_BYTES = 128 * 1024;
-
-export const rpcContract = defineRpcContract({
-  ensure_lazygit_tab: {
-    input: z.object({
-      threadId: z.string().min(1),
-      // force bypasses the user-closed-tab suppression (Actions row, CLI).
-      force: z.boolean().optional(),
-    }),
-    output: z.object({
-      status: z.enum(["created", "already-present", "suppressed"]),
-    }),
-  },
-  lazygit_attach: {
-    input: z.object({
-      threadId: z.string().min(1),
-      cols: z.number().int().min(2),
-      rows: z.number().int().min(2),
-    }),
-    output: z.object({
-      terminalId: z.string(),
-      status: z.string(),
-      exitCode: z.number().nullable(),
-    }),
-  },
-  lazygit_output: {
-    input: z.object({
-      terminalId: z.string().min(1),
-      sinceSeq: z.number().int().nonnegative().optional(),
-      tailBytes: z.number().int().positive().optional(),
-    }),
-    output: z.object({
-      chunks: z.array(z.object({ dataBase64: z.string(), seq: z.number() })),
-      nextSeq: z.number(),
-      truncated: z.boolean(),
-    }),
-  },
-  lazygit_input: {
-    input: z.object({
-      terminalId: z.string().min(1),
-      dataBase64: z.string(),
-    }),
-    output: z.object({ ok: z.boolean() }),
-  },
-  lazygit_resize: {
-    input: z.object({
-      terminalId: z.string().min(1),
-      cols: z.number().int().min(2),
-      rows: z.number().int().min(2),
-    }),
-    output: z.object({ ok: z.boolean() }),
-  },
-  lazygit_status: {
-    input: z.object({ terminalId: z.string().min(1) }),
-    output: z.object({
-      status: z.string(),
-      exitCode: z.number().nullable(),
-    }),
-  },
-  lazygit_repo_state: {
-    input: z.object({ threadId: z.string().min(1) }),
-    output: z.object({ isGitRepo: z.boolean() }),
-  },
-  lazygit_init_repo: {
-    input: z.object({ threadId: z.string().min(1) }),
-    output: z.object({ ok: z.boolean() }),
-  },
-});
-
-type EnsureStatus = "created" | "already-present" | "suppressed";
-export type EnsureResult = { status: EnsureStatus };
-
-type ThreadState = { terminalId: string | null; createdAt: number };
-type PluginState = { threads: Record<string, ThreadState> };
+export { rpcContract } from "./server/contract";
+export type { EnsureResult } from "./server/contract";
 
 export default async function plugin(bb: BbPluginApi) {
   bb.log.info("loaded");
@@ -124,387 +36,16 @@ export default async function plugin(bb: BbPluginApi) {
   });
   const { command } = await settings.get();
 
-  async function readState(): Promise<PluginState> {
-    return (await bb.storage.kv.get<PluginState>(STATE_KEY)) ?? {
-      threads: {},
-    };
-  }
-  async function writeState(state: PluginState): Promise<void> {
-    // FIFO-trim oldest entries to keep the record bounded.
-    const ids = Object.keys(state.threads);
-    if (ids.length > STATE_MAX_THREADS) {
-      ids
-        .sort((a, b) => state.threads[a].createdAt - state.threads[b].createdAt)
-        .slice(0, ids.length - STATE_MAX_THREADS)
-        .forEach((id) => delete state.threads[id]);
-    }
-    await bb.storage.kv.set(STATE_KEY, state);
-  }
-  async function recordThread(
-    threadId: string,
-    terminalId: string | null,
-  ): Promise<void> {
-    const state = await readState();
-    const existing = state.threads[threadId];
-    state.threads[threadId] = {
-      terminalId: terminalId ?? existing?.terminalId ?? null,
-      createdAt: existing?.createdAt ?? Date.now(),
-    };
-    await writeState(state);
-  }
-
-  function isAlive(session: TerminalSession): boolean {
-    return (
-      session.status === "starting" ||
-      session.status === "running" ||
-      session.status === "disconnected"
-    );
-  }
-
-  function isOurPanelTab(tab: {
-    kind: string;
-    pluginId?: string;
-    actionId?: string;
-  }): boolean {
-    return (
-      tab.kind === "plugin-panel" &&
-      tab.pluginId === PLUGIN_ID &&
-      tab.actionId === PANEL_ACTION_ID
-    );
-  }
-
-  // ---------------------------------------------------------------------
-  // Tab management (ensure)
-  // ---------------------------------------------------------------------
-
-  type TabEntry = {
-    id: string;
-    kind: string;
-    pluginId?: string;
-    actionId?: string;
-    title?: string;
-    paramsJson?: string | null;
-    terminalId?: string;
-  };
-
-  function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  function isTabsConflict(error: unknown): boolean {
-    return (
-      typeof error === "object" &&
-      error !== null &&
-      (error as { code?: unknown }).code === "thread_tabs_conflict"
-    );
-  }
-
-  // A thread's tab list starts at revision 0 and is initialized by the app on
-  // first view (writing its default thread-info / git-diff tabs). Appending
-  // before that write loses our tab to the app's initialization, so wait for
-  // it. Bounded: if the panel is never opened the revision stays 0 and we
-  // proceed anyway — the app's initializer no-ops once revision > 0.
-  const TAB_INIT_POLL_MS = 400;
-  const TAB_INIT_WAIT_MS = 15_000;
-  async function waitForTabsInitialization(threadId: string): Promise<void> {
-    const deadline = Date.now() + TAB_INIT_WAIT_MS;
-    let current = await bb.sdk.threads.tabs.get({ threadId });
-    while (current.revision === 0 && Date.now() < deadline) {
-      await sleep(TAB_INIT_POLL_MS);
-      current = await bb.sdk.threads.tabs.get({ threadId });
-    }
-  }
-
-  const CAS_MAX_ATTEMPTS = 5;
-  async function doEnsure(
-    threadId: string,
-    force: boolean,
-  ): Promise<EnsureResult> {
-    await waitForTabsInitialization(threadId);
-    let lastError: unknown;
-    // The tabs update is compare-and-swap on revision; retry with backoff
-    // when another writer (the app, another plugin) changes the list first.
-    for (let attempt = 0; attempt < CAS_MAX_ATTEMPTS; attempt += 1) {
-      const current = await bb.sdk.threads.tabs.get({ threadId });
-      const tabs = current.tabs as unknown as TabEntry[];
-      const state = await readState();
-      const record = state.threads[threadId];
-
-      const hasPanel = tabs.some(isOurPanelTab);
-      // Pre-0.2 versions used a native terminal tab; migrate it in place.
-      const legacy = tabs.find(
-        (tab) =>
-          tab.kind === "terminal" &&
-          (tab.id === TAB_ID ||
-            (record?.terminalId != null &&
-              tab.terminalId === record.terminalId)),
-      );
-
-      if (hasPanel && legacy === undefined) {
-        return { status: "already-present" };
-      }
-      if (!hasPanel && legacy === undefined && !force && record !== undefined) {
-        // We created this tab before and it is gone: the user closed it.
-        return { status: "suppressed" };
-      }
-
-      const nextTabs: TabEntry[] = tabs.filter((tab) => tab !== legacy);
-      if (!hasPanel) {
-        nextTabs.push({
-          id: TAB_ID,
-          kind: "plugin-panel",
-          pluginId: PLUGIN_ID,
-          actionId: PANEL_ACTION_ID,
-          title: TAB_TITLE,
-          paramsJson: null,
-        });
-      }
-      try {
-        await bb.sdk.threads.tabs.update({
-          threadId,
-          expectedRevision: current.revision,
-          tabs: nextTabs as never,
-        });
-      } catch (error) {
-        if (!isTabsConflict(error)) throw error;
-        lastError = error;
-        await sleep(250 * (attempt + 1));
-        continue;
-      }
-      if (legacy !== undefined && legacy.terminalId !== undefined) {
-        // The old thread-scoped session is superseded by lazy attach.
-        await bb.sdk.terminals
-          .close({ terminalId: legacy.terminalId, mode: "force" })
-          .catch(() => {});
-      }
-      if (!hasPanel) {
-        await recordThread(threadId, record?.terminalId ?? null);
-        bb.log.info(`created lazygit tab for thread ${threadId}`);
-      }
-      return { status: hasPanel ? "already-present" : "created" };
-    }
-    throw new Error(
-      `Could not update thread tabs after retries: ${
-        lastError instanceof Error ? lastError.message : String(lastError)
-      }`,
-    );
-  }
-
-  // Deduplicate concurrent calls per thread (overlay + CLI + panel action can
-  // race on one view).
-  const inflightEnsure = new Map<string, Promise<EnsureResult>>();
-  function ensureLazygitTab(
-    threadId: string,
-    force: boolean,
-  ): Promise<EnsureResult> {
-    const pending = inflightEnsure.get(threadId);
-    if (pending !== undefined) return pending;
-    const run = doEnsure(threadId, force).finally(() => {
-      inflightEnsure.delete(threadId);
-    });
-    inflightEnsure.set(threadId, run);
-    return run;
-  }
-
-  // ---------------------------------------------------------------------
-  // Terminal session (lazy, environment-scoped so bb's native terminal-tab
-  // auto-lister never shows a duplicate in the thread panel)
-  // ---------------------------------------------------------------------
-
-  type AttachResult = {
-    terminalId: string;
-    status: string;
-    exitCode: number | null;
-  };
-
-  // A session started before its folder became a git repo sits on lazygit's
-  // "Not in a git repository…" prompt forever; attach must not reuse it.
-  // (lazygit's own prompt says "Not in a…", git's fatal says "not a…".)
-  const NOT_A_REPO_MARKERS = ["not in a git repository", "not a git repository"];
-  const REPO_PROMPT_TAIL_BYTES = 8192;
-
-  function decodeBase64Utf8(value: string): string {
-    const binary = atob(value);
-    const bytes = new Uint8Array(binary.length);
-    for (let index = 0; index < binary.length; index += 1) {
-      bytes[index] = binary.charCodeAt(index);
-    }
-    return new TextDecoder().decode(bytes);
-  }
-
-  async function sessionStuckAtRepoPrompt(
-    terminalId: string,
-  ): Promise<boolean> {
-    const tail = await bb.sdk.terminals
-      .output({ terminalId, tailBytes: REPO_PROMPT_TAIL_BYTES })
-      .catch(() => null);
-    if (tail === null) return false;
-    return tail.chunks.some((chunk) => {
-      const text = decodeBase64Utf8(chunk.dataBase64).toLowerCase();
-      return NOT_A_REPO_MARKERS.some((marker) => text.includes(marker));
-    });
-  }
-
-  async function threadEnvironmentId(threadId: string): Promise<string> {
-    const thread = await bb.sdk.threads.get({ threadId });
-    const environmentId = (thread as { environmentId?: string | null })
-      .environmentId;
-    if (environmentId == null || environmentId === "") {
-      throw new Error(
-        "The thread's environment is not ready yet. Retry in a moment.",
-      );
-    }
-    return environmentId;
-  }
-
-  async function doAttach(
-    threadId: string,
-    cols: number,
-    rows: number,
-  ): Promise<AttachResult> {
-    const state = await readState();
-    const record = state.threads[threadId];
-    if (record?.terminalId != null) {
-      const existing = await bb.sdk.terminals
-        .get({ terminalId: record.terminalId })
-        .catch(() => null);
-      if (existing !== null && isAlive(existing)) {
-        if (!(await sessionStuckAtRepoPrompt(existing.id))) {
-          if (existing.cols !== cols || existing.rows !== rows) {
-            await bb.sdk.terminals
-              .resize({ terminalId: existing.id, cols, rows })
-              .catch(() => {});
-          }
-          return {
-            terminalId: existing.id,
-            status: existing.status,
-            exitCode: existing.exitCode,
-          };
-        }
-        bb.log.info(
-          `replacing lazygit session ${existing.id}: stuck at the not-a-repo prompt`,
-        );
-      }
-      if (existing !== null) {
-        await bb.sdk.terminals
-          .close({ terminalId: existing.id, mode: "force" })
-          .catch(() => {});
-      }
-    }
-
-    const environmentId = await threadEnvironmentId(threadId);
-    const session = await bb.sdk.terminals.create({
-      scope: { kind: "environment", environmentId },
-      cols,
-      rows,
-      title: TERMINAL_TITLE,
-      start: { mode: "command", command },
-    });
-    await recordThread(threadId, session.id);
-    bb.log.info(
-      `started lazygit session ${session.id} for thread ${threadId} (env ${environmentId})`,
-    );
-    return {
-      terminalId: session.id,
-      status: session.status,
-      exitCode: session.exitCode,
-    };
-  }
-
-  const inflightAttach = new Map<string, Promise<AttachResult>>();
-  function attach(threadId: string, cols: number, rows: number) {
-    const pending = inflightAttach.get(threadId);
-    if (pending !== undefined) return pending;
-    const run = doAttach(threadId, cols, rows).finally(() => {
-      inflightAttach.delete(threadId);
-    });
-    inflightAttach.set(threadId, run);
-    return run;
-  }
-
-  // ---------------------------------------------------------------------
-  // Non-repository environments: the panel checks before attaching so
-  // lazygit never shows its raw "not a git repository" prompt; the user can
-  // instead initialize a repo from the panel, which runs `git init` here.
-  // ---------------------------------------------------------------------
-
-  const COMMAND_POLL_MS = 500;
-  const COMMAND_WAIT_MS = 30_000;
-  /**
-   * Run a short command in the environment; resolves with its exit code
-   * (null when it did not exit within the timeout).
-   */
-  async function runEnvironmentCommand(
-    environmentId: string,
-    command: string,
-    title: string,
-  ): Promise<number | null> {
-    const session = await bb.sdk.terminals.create({
-      scope: { kind: "environment", environmentId },
-      cols: 80,
-      rows: 24,
-      title,
-      start: { mode: "command", command },
-    });
-    try {
-      const deadline = Date.now() + COMMAND_WAIT_MS;
-      let current = session;
-      while (current.status !== "exited" && Date.now() < deadline) {
-        await sleep(COMMAND_POLL_MS);
-        current = await bb.sdk.terminals.get({ terminalId: session.id });
-      }
-      return current.status === "exited" ? current.exitCode : null;
-    } finally {
-      await bb.sdk.terminals
-        .close({ terminalId: session.id, mode: "force" })
-        .catch(() => {});
-    }
-  }
-
-  async function environmentIsGitRepo(environmentId: string): Promise<boolean> {
-    // Never trust bb's Environment.isGitRepo: it is a provision-time snapshot
-    // that goes stale in both directions (a later `git init` does not set it,
-    // and it stays true after the repo is deleted). Ask git itself.
-    const exitCode = await runEnvironmentCommand(
-      environmentId,
-      "git rev-parse --is-inside-work-tree",
-      "git repo check",
-    );
-    return exitCode === 0;
-  }
-
-  /** Close and forget the thread's recorded lazygit session, if any. */
-  async function clearThreadTerminal(threadId: string): Promise<void> {
-    const state = await readState();
-    const record = state.threads[threadId];
-    if (record === undefined) return;
-    if (record.terminalId != null) {
-      await bb.sdk.terminals
-        .close({ terminalId: record.terminalId, mode: "force" })
-        .catch(() => {});
-    }
-    record.terminalId = null;
-    await writeState(state);
-  }
-
-  async function initRepo(threadId: string): Promise<{ ok: boolean }> {
-    const environmentId = await threadEnvironmentId(threadId);
-    if (await environmentIsGitRepo(environmentId)) return { ok: true };
-    const exitCode = await runEnvironmentCommand(
-      environmentId,
-      "git init",
-      "git init",
-    );
-    if (exitCode !== 0) {
-      throw new Error("`git init` failed in the thread's environment.");
-    }
-    return { ok: true };
-  }
+  const state = createPluginState(bb);
+  const env = createEnvironment(bb);
+  const repo = createRepo(bb, { env, state });
+  const terminal = createTerminalManager(bb, { state, env, command });
+  const tabs = createTabManager(bb, { state });
 
   bb.rpc.register(rpcContract, {
     ensure_lazygit_tab: ({ threadId, force }) =>
-      ensureLazygitTab(threadId, force === true),
-    lazygit_attach: ({ threadId, cols, rows }) => attach(threadId, cols, rows),
+      tabs.ensure(threadId, force === true),
+    lazygit_attach: ({ threadId, cols, rows }) => terminal.attach(threadId, cols, rows),
     lazygit_output: async ({ terminalId, sinceSeq, tailBytes }) => {
       const result = await bb.sdk.terminals.output({
         terminalId,
@@ -530,16 +71,16 @@ export default async function plugin(bb: BbPluginApi) {
       return { status: session.status, exitCode: session.exitCode };
     },
     lazygit_repo_state: async ({ threadId }) => {
-      const environmentId = await threadEnvironmentId(threadId);
-      const isGitRepo = await environmentIsGitRepo(environmentId);
+      const environmentId = await env.threadEnvironmentId(threadId);
+      const isGitRepo = await repo.environmentIsGitRepo(environmentId);
       if (!isGitRepo) {
         // A recorded session can only be stuck on lazygit's not-a-repo
         // prompt; drop it so a later attach starts fresh.
-        await clearThreadTerminal(threadId);
+        await state.clearThreadTerminal(threadId);
       }
       return { isGitRepo };
     },
-    lazygit_init_repo: ({ threadId }) => initRepo(threadId),
+    lazygit_init_repo: ({ threadId }) => repo.initRepo(threadId),
   });
 
   const usage = [
@@ -578,7 +119,7 @@ export default async function plugin(bb: BbPluginApi) {
         return { exitCode: 1, stderr: `No thread in context. ${usage}` };
       }
       try {
-        const result = await ensureLazygitTab(threadId, true);
+        const result = await tabs.ensure(threadId, true);
         switch (result.status) {
           case "created":
             return {

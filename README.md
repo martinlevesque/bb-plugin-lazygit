@@ -4,19 +4,25 @@ A BB plugin that auto-creates a **Lazygit** tab in every thread you open —
 like the built-in Thread Info and Diff tabs — running
 [lazygit](https://github.com/jesseduffield/lazygit) in the thread's worktree.
 
-- `server.ts` — the backend: an `ensure_lazygit_tab` RPC that appends the
-  plugin-owned panel tab through the compare-and-swap `bb.sdk.threads.tabs`
-  API, and the `lazygit_*` RPCs (`attach` / `input` / `output` / `resize` /
-  `status`, plus `repo_state` / `init_repo` for environments that are not git
-  repositories) that manage the persistent environment-scoped terminal session
-  running `lazygit`. Plus a `bb lazygit` CLI command and the `autoOpen` /
-  `command` settings.
-- `app.tsx` — the frontend: an app-wide overlay
-  (`app.slots.experimental_appOverlay`) that adds the tab the first time a
-  thread is opened, a **Lazygit** row in the thread panel's Actions list
+- `server.ts` — the thin backend entry: reads the settings and wires the RPC
+  contract and the `bb lazygit` CLI command to the submodules in `server/`.
+  The logic lives in `server/contract.ts` (the RPC contract shared with the
+  frontend), `server/tabs.ts` (appending the plugin-owned panel tab through
+  the compare-and-swap `bb.sdk.threads.tabs` API), `server/terminal.ts` (the
+  persistent environment-scoped lazygit session: `attach` / `input` /
+  `output` / `resize` / `status`), `server/repo.ts` (`repo_state` /
+  `init_repo` for environments that are not git repositories), plus
+  `server/state.ts` (bounded per-thread kv records) and `server/env.ts`
+  (thread→environment and throwaway command helpers). The `autoOpen` /
+  `command` settings live here too.
+- `app.tsx` — the thin frontend entry: `app.slots.experimental_appOverlay`
+  and the **Lazygit** row in the thread panel's Actions list
   (`app.slots.threadPanelAction`, host-native select-on-open via
-  `openPanel`), and the tab body — an xterm.js terminal bridged to the
-  session over RPC.
+  `openPanel`), delegating to the submodules in `app/`: the auto-open
+  overlay (`app/components/auto-open-overlay.tsx`), the xterm.js tab body
+  (`app/components/lazygit-panel.tsx` + the `use-lazygit-terminal` hook that
+  bridges the terminal to the session over RPC), and the shared RPC client
+  (`app/rpc-store.ts`). `lib/base64.ts` holds the wire codec both sides use.
 - `skills/lazygit/SKILL.md` — a skill that tells agents to open lazygit with
   `bb lazygit`. BB imports it into agent threads automatically.
 - `PLUGIN_OVERVIEW.md` — the store listing text: a longer version of
