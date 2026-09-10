@@ -22,10 +22,10 @@
   },
   "include": [
     "server.ts",
-    "server.e2e.test.ts",
     "app.tsx",
     "components",
     "lib",
-    "hooks"
+    "hooks",
+    "test"
   ]
 }

@@ -131,7 +131,7 @@ Settings are read once per load, so reload after changing them.
 
 ## Tests
 
-`server.e2e.test.ts` drives the backend end-to-end: it loads `server.ts`
+`test/server.e2e.test.ts` drives the backend end-to-end: it loads `server.ts`
 into the fake plugin host from `@get-bb/plugin-sdk/testing` and exercises
 the `ensure_lazygit_tab` / `lazygit_*` RPCs and the `bb lazygit` CLI through
 their wire contract, against an in-memory stand-in for the thread-tabs and

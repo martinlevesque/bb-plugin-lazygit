@@ -1,4 +1,4 @@
-// server.e2e.test.ts — end-to-end tests for the plugin backend.
+// test/server.e2e.test.ts — end-to-end tests for the plugin backend.
 //
 // These tests load server.ts into the official fake plugin host
 // (`@get-bb/plugin-sdk/testing`) and drive it the way the BB app would:
@@ -9,7 +9,7 @@
 // semantics as the host.
 import { afterEach, describe, expect, it } from "vitest";
 import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
-import plugin from "./server";
+import plugin from "../server";
 
 type SdkOverrides = NonNullable<Parameters<typeof createFakePluginHost>[0]>["sdk"];
 
