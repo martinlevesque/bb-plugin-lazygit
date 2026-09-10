@@ -60,11 +60,13 @@ function PanelMessage({
   detail,
   actionLabel,
   onAction,
+  disabled,
 }: {
   title: string;
   detail: string | null;
   actionLabel: string;
   onAction: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col items-center justify-center gap-3 bg-background p-6 text-center">
@@ -75,7 +77,8 @@ function PanelMessage({
       <button
         type="button"
         onClick={onAction}
-        className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground hover:bg-accent"
+        disabled={disabled}
+        className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground hover:bg-accent disabled:opacity-50"
       >
         {actionLabel}
       </button>
@@ -92,10 +95,12 @@ function LazygitPanel({ threadId }: PluginThreadPanelProps) {
   const [phase, setPhase] = useState<
     | { kind: "connecting"; waiting: boolean }
     | { kind: "ready" }
+    | { kind: "no-repo" }
     | { kind: "exited"; exitCode: number | null }
     | { kind: "error"; message: string }
   >({ kind: "connecting", waiting: false });
   const [attempt, setAttempt] = useState(0);
+  const [initializing, setInitializing] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -128,6 +133,21 @@ function LazygitPanel({ threadId }: PluginThreadPanelProps) {
     setPhase({ kind: "connecting", waiting: false });
 
     const attach = async (attemptsLeft: number): Promise<void> => {
+      // Don't start lazygit where it could only show its raw "not a git
+      // repository" prompt; the no-repo panel offers an explicit init action.
+      try {
+        const repo = await rpcRef.current.call("lazygit_repo_state", {
+          threadId,
+        });
+        if (disposed) return;
+        if (!repo.isGitRepo) {
+          setPhase({ kind: "no-repo" });
+          return;
+        }
+      } catch {
+        // Environment still provisioning or check failed: fall through to the
+        // attach path, whose retries already cover provisioning delays.
+      }
       let session: {
         terminalId: string;
         status: string;
@@ -271,6 +291,20 @@ function LazygitPanel({ threadId }: PluginThreadPanelProps) {
   }, [threadId, attempt]);
 
   const restart = () => setAttempt((value) => value + 1);
+  const initRepo = () => {
+    setInitializing(true);
+    rpcRef.current
+      .call("lazygit_init_repo", { threadId })
+      .then(() => restart())
+      .catch((cause: unknown) => {
+        toast.error(
+          `Could not initialize a git repository: ${
+            cause instanceof Error ? cause.message : String(cause)
+          }`,
+        );
+      })
+      .finally(() => setInitializing(false));
+  };
   return (
     <div className="relative h-full min-h-0 flex-1 overflow-hidden bg-background text-foreground">
       <div ref={containerRef} className="h-full w-full pl-2 pt-1" />
@@ -279,6 +313,19 @@ function LazygitPanel({ threadId }: PluginThreadPanelProps) {
           {phase.waiting
             ? "Waiting for the thread's environment…"
             : "Starting lazygit…"}
+        </div>
+      ) : null}
+      {phase.kind === "no-repo" ? (
+        <div className="absolute inset-0">
+          <PanelMessage
+            title="This folder isn't a git repository"
+            detail="lazygit needs a git repository in the thread's folder. Initialize one to get started."
+            actionLabel={
+              initializing ? "Initializing…" : "Initialize git repository"
+            }
+            onAction={initRepo}
+            disabled={initializing}
+          />
         </div>
       ) : null}
       {phase.kind === "error" ? (
