@@ -7,7 +7,8 @@ like the built-in Thread Info and Diff tabs — running
 - `server.ts` — the backend: an `ensure_lazygit_tab` RPC that appends the
   plugin-owned panel tab through the compare-and-swap `bb.sdk.threads.tabs`
   API, and the `lazygit_*` RPCs (`attach` / `input` / `output` / `resize` /
-  `status`) that manage the persistent environment-scoped terminal session
+  `status`, plus `repo_state` / `init_repo` for environments that are not git
+  repositories) that manage the persistent environment-scoped terminal session
   running `lazygit`. Plus a `bb lazygit` CLI command and the `autoOpen` /
   `command` settings.
 - `app.tsx` — the frontend: an app-wide overlay
@@ -26,7 +27,9 @@ The tab is plugin-owned (a `plugin-panel` tab) rather than a native terminal
 tab on purpose: bb gives plugins no API to select a native terminal tab or
 dismiss the "New tab" launcher, while `openPanel` does both for plugin
 panels. The lazygit process starts lazily the first time the tab is
-activated.
+activated. If the thread's environment is not a git repository, lazygit is
+never started; the tab shows a panel offering to `git init` the folder
+instead.
 
 Try it: install the plugin, open any thread — a **Lazygit** tab appears in
 the right panel's tab strip. Closing the tab is respected (it stays closed

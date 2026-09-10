@@ -32,6 +32,7 @@ type TerminalRecord = {
   command: string | null;
   status: string;
   exitCode: number | null;
+  outputText: string | null;
 };
 
 const THREAD_ID = "th_e2e";
@@ -50,6 +51,10 @@ function createWorld() {
   const terminals = new Map<string, TerminalRecord>();
   const inputs: { terminalId: string; dataBase64: string }[] = [];
   let nextTerminalSeq = 1;
+  // The on-disk reality `git rev-parse` sees. bb's own Environment.isGitRepo
+  // is a provision-time snapshot; the plugin must not consult it, so the
+  // fake does not model it.
+  let diskIsGitRepo = true;
 
   function tabEntry(threadId: string) {
     let entry = tabsByThread.get(threadId);
@@ -89,19 +94,27 @@ function createWorld() {
       create: async ({ scope, cols, rows, title, start }) => {
         const id = `term_${nextTerminalSeq}`;
         nextTerminalSeq += 1;
+        const command =
+          start !== undefined && "command" in start
+            ? (start.command ?? null)
+            : null;
+        // Simulate the short git commands the plugin runs in the environment:
+        // `git init` succeeds and flips the on-disk repo flag; `git rev-parse`
+        // reports the current on-disk flag. Both exit immediately.
+        const isInit = command === "git init";
+        const isRepoCheck = command === "git rev-parse --is-inside-work-tree";
         const session: TerminalRecord = {
           id,
           scope: scope as TerminalRecord["scope"],
           cols,
           rows,
           title,
-          command:
-            start !== undefined && "command" in start
-              ? (start.command ?? null)
-              : null,
-          status: "running",
-          exitCode: null,
+          command,
+          status: isInit || isRepoCheck ? "exited" : "running",
+          exitCode: isInit ? 0 : isRepoCheck ? (diskIsGitRepo ? 0 : 128) : null,
+          outputText: null,
         };
+        if (isInit) diskIsGitRepo = true;
         terminals.set(id, session);
         return clone(session);
       },
@@ -133,7 +146,9 @@ function createWorld() {
       output: async ({ terminalId }) => ({
         chunks: [
           {
-            dataBase64: Buffer.from(`ui:${terminalId}`).toString("base64"),
+            dataBase64: Buffer.from(
+              terminals.get(terminalId)?.outputText ?? `ui:${terminalId}`,
+            ).toString("base64"),
             seq: 1,
           },
         ],
@@ -152,6 +167,16 @@ function createWorld() {
       return session === undefined ? undefined : clone(session);
     },
     terminalCount: () => terminals.size,
+    terminals: () => Array.from(terminals.values()).map(clone),
+    /** Set the environment's on-disk repo state (what `git rev-parse` sees). */
+    setGitRepo: (value: boolean) => {
+      diskIsGitRepo = value;
+    },
+    /** Replace what a terminal's scrollback replay returns. */
+    setTerminalOutput: (terminalId: string, text: string) => {
+      const session = terminals.get(terminalId);
+      if (session !== undefined) session.outputText = text;
+    },
     /** Simulate the user closing the Lazygit panel tab in the app. */
     closeLazygitTab: (threadId: string) => {
       const entry = tabEntry(threadId);
@@ -263,6 +288,33 @@ describe("bb-plugin-lazygit backend e2e", () => {
     expect(status).toEqual({ status: "running", exitCode: null });
   });
 
+  it("replaces a live lazygit session stuck on the not-a-repo prompt", async () => {
+    const { world, harness } = await setup();
+    cleanup = () => harness.lifecycle.dispose();
+
+    // A lazygit session started before the folder became a repo sits on
+    // lazygit's own init prompt forever.
+    const first = (await harness.behavior.callRpc("lazygit_attach", {
+      threadId: THREAD_ID,
+      cols: 80,
+      rows: 24,
+    })) as { terminalId: string };
+    world.setTerminalOutput(
+      first.terminalId,
+      "Not in a git repository. Create a new git repository? (y/N):",
+    );
+
+    // The next attach must not reuse it: close it and start fresh.
+    const second = (await harness.behavior.callRpc("lazygit_attach", {
+      threadId: THREAD_ID,
+      cols: 80,
+      rows: 24,
+    })) as { terminalId: string; status: string };
+    expect(second.terminalId).not.toBe(first.terminalId);
+    expect(second.status).toBe("running");
+    expect(world.terminal(first.terminalId)?.status).toBe("exited");
+  });
+
   it("stays closed once the user closes the tab, unless forced", async () => {
     const { world, harness } = await setup();
     cleanup = () => harness.lifecycle.dispose();
@@ -291,6 +343,108 @@ describe("bb-plugin-lazygit backend e2e", () => {
     expect(
       world.tabsFor(THREAD_ID).some((tab) => tab.id === "lazygit"),
     ).toBe(true);
+  });
+
+  describe("given a non-git folder", () => {
+    it("reports the environment is not a git repository", async () => {
+      const { world, harness } = await setup();
+      cleanup = () => harness.lifecycle.dispose();
+      world.setGitRepo(false);
+
+      const state = (await harness.behavior.callRpc("lazygit_repo_state", {
+        threadId: THREAD_ID,
+      })) as { isGitRepo: boolean };
+
+      expect(state.isGitRepo).toBe(false);
+    });
+
+    it("initializes a repo with a throwaway `git init` session, never lazygit", async () => {
+      const { world, harness } = await setup();
+      cleanup = () => harness.lifecycle.dispose();
+      world.setGitRepo(false);
+
+      const initialized = (await harness.behavior.callRpc(
+        "lazygit_init_repo",
+        { threadId: THREAD_ID },
+      )) as { ok: boolean };
+
+      expect(initialized.ok).toBe(true);
+      const initSession = world
+        .terminals()
+        .find((session) => session.command === "git init");
+      expect(initSession).toMatchObject({
+        scope: { kind: "environment", environmentId: ENVIRONMENT_ID },
+      });
+      expect(
+        world.terminals().every((session) => session.command !== "lazygit"),
+      ).toBe(true);
+
+      // Afterwards the environment is a repo and attach can start lazygit.
+      const after = (await harness.behavior.callRpc("lazygit_repo_state", {
+        threadId: THREAD_ID,
+      })) as { isGitRepo: boolean };
+      expect(after.isGitRepo).toBe(true);
+    });
+
+    it("follows repo changes in both directions, ignoring bb's cached record", async () => {
+      const { world, harness } = await setup();
+      cleanup = () => harness.lifecycle.dispose();
+      const repoState = () =>
+        harness.behavior.callRpc("lazygit_repo_state", {
+          threadId: THREAD_ID,
+        }) as Promise<{ isGitRepo: boolean }>;
+
+      // bb's Environment.isGitRepo is a provision-time snapshot; the check
+      // must track the on-disk reality instead.
+      world.setGitRepo(false);
+      expect((await repoState()).isGitRepo).toBe(false);
+
+      world.setGitRepo(true);
+      expect((await repoState()).isGitRepo).toBe(true);
+
+      world.setGitRepo(false);
+      expect((await repoState()).isGitRepo).toBe(false);
+    });
+
+    it("closes the thread's recorded session while the folder is not a repo", async () => {
+      const { world, harness } = await setup();
+      cleanup = () => harness.lifecycle.dispose();
+
+      const attached = (await harness.behavior.callRpc("lazygit_attach", {
+        threadId: THREAD_ID,
+        cols: 80,
+        rows: 24,
+      })) as { terminalId: string; status: string };
+      expect(attached.status).toBe("running");
+
+      world.setGitRepo(false);
+      const state = (await harness.behavior.callRpc("lazygit_repo_state", {
+        threadId: THREAD_ID,
+      })) as { isGitRepo: boolean };
+      expect(state.isGitRepo).toBe(false);
+      expect(world.terminal(attached.terminalId)?.status).toBe("exited");
+    });
+
+    it("no-ops init once the folder is already a repo", async () => {
+      const { world, harness } = await setup();
+      cleanup = () => harness.lifecycle.dispose();
+      world.setGitRepo(false);
+
+      await harness.behavior.callRpc("lazygit_init_repo", {
+        threadId: THREAD_ID,
+      });
+      const initSessions = () =>
+        world.terminals().filter((session) => session.command === "git init");
+      expect(initSessions()).toHaveLength(1);
+
+      const again = (await harness.behavior.callRpc("lazygit_init_repo", {
+        threadId: THREAD_ID,
+      })) as { ok: boolean };
+
+      // The second init ran no additional `git init`.
+      expect(again.ok).toBe(true);
+      expect(initSessions()).toHaveLength(1);
+    });
   });
 
   it("exposes the bb lazygit CLI command", async () => {

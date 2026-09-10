@@ -87,6 +87,14 @@ export const rpcContract = defineRpcContract({
       exitCode: z.number().nullable(),
     }),
   },
+  lazygit_repo_state: {
+    input: z.object({ threadId: z.string().min(1) }),
+    output: z.object({ isGitRepo: z.boolean() }),
+  },
+  lazygit_init_repo: {
+    input: z.object({ threadId: z.string().min(1) }),
+    output: z.object({ ok: z.boolean() }),
+  },
 });
 
 type EnsureStatus = "created" | "already-present" | "suppressed";
@@ -309,6 +317,46 @@ export default async function plugin(bb: BbPluginApi) {
     exitCode: number | null;
   };
 
+  // A session started before its folder became a git repo sits on lazygit's
+  // "Not in a git repository…" prompt forever; attach must not reuse it.
+  // (lazygit's own prompt says "Not in a…", git's fatal says "not a…".)
+  const NOT_A_REPO_MARKERS = ["not in a git repository", "not a git repository"];
+  const REPO_PROMPT_TAIL_BYTES = 8192;
+
+  function decodeBase64Utf8(value: string): string {
+    const binary = atob(value);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return new TextDecoder().decode(bytes);
+  }
+
+  async function sessionStuckAtRepoPrompt(
+    terminalId: string,
+  ): Promise<boolean> {
+    const tail = await bb.sdk.terminals
+      .output({ terminalId, tailBytes: REPO_PROMPT_TAIL_BYTES })
+      .catch(() => null);
+    if (tail === null) return false;
+    return tail.chunks.some((chunk) => {
+      const text = decodeBase64Utf8(chunk.dataBase64).toLowerCase();
+      return NOT_A_REPO_MARKERS.some((marker) => text.includes(marker));
+    });
+  }
+
+  async function threadEnvironmentId(threadId: string): Promise<string> {
+    const thread = await bb.sdk.threads.get({ threadId });
+    const environmentId = (thread as { environmentId?: string | null })
+      .environmentId;
+    if (environmentId == null || environmentId === "") {
+      throw new Error(
+        "The thread's environment is not ready yet. Retry in a moment.",
+      );
+    }
+    return environmentId;
+  }
+
   async function doAttach(
     threadId: string,
     cols: number,
@@ -321,16 +369,21 @@ export default async function plugin(bb: BbPluginApi) {
         .get({ terminalId: record.terminalId })
         .catch(() => null);
       if (existing !== null && isAlive(existing)) {
-        if (existing.cols !== cols || existing.rows !== rows) {
-          await bb.sdk.terminals
-            .resize({ terminalId: existing.id, cols, rows })
-            .catch(() => {});
+        if (!(await sessionStuckAtRepoPrompt(existing.id))) {
+          if (existing.cols !== cols || existing.rows !== rows) {
+            await bb.sdk.terminals
+              .resize({ terminalId: existing.id, cols, rows })
+              .catch(() => {});
+          }
+          return {
+            terminalId: existing.id,
+            status: existing.status,
+            exitCode: existing.exitCode,
+          };
         }
-        return {
-          terminalId: existing.id,
-          status: existing.status,
-          exitCode: existing.exitCode,
-        };
+        bb.log.info(
+          `replacing lazygit session ${existing.id}: stuck at the not-a-repo prompt`,
+        );
       }
       if (existing !== null) {
         await bb.sdk.terminals
@@ -339,15 +392,7 @@ export default async function plugin(bb: BbPluginApi) {
       }
     }
 
-    const thread = await bb.sdk.threads.get({ threadId });
-    const environmentId = (
-      thread as { environmentId?: string | null }
-    ).environmentId;
-    if (environmentId == null || environmentId === "") {
-      throw new Error(
-        "The thread's environment is not ready yet. Retry in a moment.",
-      );
-    }
+    const environmentId = await threadEnvironmentId(threadId);
     const session = await bb.sdk.terminals.create({
       scope: { kind: "environment", environmentId },
       cols,
@@ -375,6 +420,85 @@ export default async function plugin(bb: BbPluginApi) {
     });
     inflightAttach.set(threadId, run);
     return run;
+  }
+
+  // ---------------------------------------------------------------------
+  // Non-repository environments: the panel checks before attaching so
+  // lazygit never shows its raw "not a git repository" prompt; the user can
+  // instead initialize a repo from the panel, which runs `git init` here.
+  // ---------------------------------------------------------------------
+
+  const COMMAND_POLL_MS = 500;
+  const COMMAND_WAIT_MS = 30_000;
+  /**
+   * Run a short command in the environment; resolves with its exit code
+   * (null when it did not exit within the timeout).
+   */
+  async function runEnvironmentCommand(
+    environmentId: string,
+    command: string,
+    title: string,
+  ): Promise<number | null> {
+    const session = await bb.sdk.terminals.create({
+      scope: { kind: "environment", environmentId },
+      cols: 80,
+      rows: 24,
+      title,
+      start: { mode: "command", command },
+    });
+    try {
+      const deadline = Date.now() + COMMAND_WAIT_MS;
+      let current = session;
+      while (current.status !== "exited" && Date.now() < deadline) {
+        await sleep(COMMAND_POLL_MS);
+        current = await bb.sdk.terminals.get({ terminalId: session.id });
+      }
+      return current.status === "exited" ? current.exitCode : null;
+    } finally {
+      await bb.sdk.terminals
+        .close({ terminalId: session.id, mode: "force" })
+        .catch(() => {});
+    }
+  }
+
+  async function environmentIsGitRepo(environmentId: string): Promise<boolean> {
+    // Never trust bb's Environment.isGitRepo: it is a provision-time snapshot
+    // that goes stale in both directions (a later `git init` does not set it,
+    // and it stays true after the repo is deleted). Ask git itself.
+    const exitCode = await runEnvironmentCommand(
+      environmentId,
+      "git rev-parse --is-inside-work-tree",
+      "git repo check",
+    );
+    return exitCode === 0;
+  }
+
+  /** Close and forget the thread's recorded lazygit session, if any. */
+  async function clearThreadTerminal(threadId: string): Promise<void> {
+    const state = await readState();
+    const record = state.threads[threadId];
+    if (record === undefined) return;
+    if (record.terminalId != null) {
+      await bb.sdk.terminals
+        .close({ terminalId: record.terminalId, mode: "force" })
+        .catch(() => {});
+    }
+    record.terminalId = null;
+    await writeState(state);
+  }
+
+  async function initRepo(threadId: string): Promise<{ ok: boolean }> {
+    const environmentId = await threadEnvironmentId(threadId);
+    if (await environmentIsGitRepo(environmentId)) return { ok: true };
+    const exitCode = await runEnvironmentCommand(
+      environmentId,
+      "git init",
+      "git init",
+    );
+    if (exitCode !== 0) {
+      throw new Error("`git init` failed in the thread's environment.");
+    }
+    return { ok: true };
   }
 
   bb.rpc.register(rpcContract, {
@@ -405,6 +529,17 @@ export default async function plugin(bb: BbPluginApi) {
       const session = await bb.sdk.terminals.get({ terminalId });
       return { status: session.status, exitCode: session.exitCode };
     },
+    lazygit_repo_state: async ({ threadId }) => {
+      const environmentId = await threadEnvironmentId(threadId);
+      const isGitRepo = await environmentIsGitRepo(environmentId);
+      if (!isGitRepo) {
+        // A recorded session can only be stuck on lazygit's not-a-repo
+        // prompt; drop it so a later attach starts fresh.
+        await clearThreadTerminal(threadId);
+      }
+      return { isGitRepo };
+    },
+    lazygit_init_repo: ({ threadId }) => initRepo(threadId),
   });
 
   const usage = [
