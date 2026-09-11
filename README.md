@@ -11,8 +11,6 @@ Everything runs locally: no account, API key, or external service.
 - **Automatic Lazygit tab** — a plugin-owned panel tab appears next to Thread
   Info and Diff in every thread you open, running lazygit in that thread's
   worktree. The process starts lazily the first time the tab is activated.
-- **Closing is respected** — close the tab and it stays closed for that
-  thread; reopen it from the panel's Actions list or with `bb lazygit`.
 - **Persistent session** — the lazygit session survives tab switches, so your
   scrollback and state are still there when you come back.
 - **Non-git folders handled** — if the thread's environment is not a git
