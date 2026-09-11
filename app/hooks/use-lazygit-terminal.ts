@@ -24,15 +24,37 @@ const OUTPUT_FAILURE_TOLERANCE = 10;
 const ATTACH_RETRY_MS = 2000;
 const ATTACH_RETRY_LIMIT = 45;
 
+// Last known phase per thread, shared across remounts. The lazygit session
+// outlives the panel (tab/thread switches unmount it), so a remount can
+// restore the previous phase immediately — the scrollback replay fills the
+// screen — instead of flashing the "connecting" overlay on every switch.
+const lastPhaseByThread = new Map<string, PanelPhase>();
+
+function initialPhase(threadId: string): PanelPhase {
+  return (
+    lastPhaseByThread.get(threadId) ?? { kind: "connecting", waiting: false }
+  );
+}
+
 export function useLazygitTerminal(threadId: string, rpc: Rpc) {
   // The effect is long-lived; always call the latest client without re-running.
   const rpcRef = useRef(rpc);
   rpcRef.current = rpc;
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [phase, setPhase] = useState<PanelPhase>({
-    kind: "connecting",
-    waiting: false,
-  });
+  const [phase, setPhaseState] = useState<PanelPhase>(() =>
+    initialPhase(threadId),
+  );
+  // The host may reuse the panel for another thread without remounting;
+  // resync the phase from that thread's cache during render.
+  const [phaseThreadId, setPhaseThreadId] = useState(threadId);
+  if (phaseThreadId !== threadId) {
+    setPhaseThreadId(threadId);
+    setPhaseState(initialPhase(threadId));
+  }
+  const setPhase = (next: PanelPhase) => {
+    lastPhaseByThread.set(threadId, next);
+    setPhaseState(next);
+  };
   const [attempt, setAttempt] = useState(0);
   const [initializing, setInitializing] = useState(false);
 
@@ -64,8 +86,8 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
     term.open(container);
     fit.fit();
 
-    setPhase({ kind: "connecting", waiting: false });
-
+    // Keep the cached phase (ready/exited/no-repo) while re-attaching; the
+    // first attach failure downgrades to "connecting" if the session is gone.
     const attach = async (attemptsLeft: number): Promise<void> => {
       // Don't start lazygit where it could only show its raw "not a git
       // repository" prompt; the no-repo panel offers an explicit init action.
@@ -228,7 +250,11 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadId, attempt]);
 
-  const restart = () => setAttempt((value) => value + 1);
+  const restart = () => {
+    // User-initiated: show the connecting feedback immediately.
+    setPhase({ kind: "connecting", waiting: false });
+    setAttempt((value) => value + 1);
+  };
   const initRepo = () => {
     setInitializing(true);
     rpcRef.current
