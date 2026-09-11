@@ -22,7 +22,20 @@ Everything runs locally: no account, API key, or external service.
 
 ## Install
 
+### Prerequisites
+
+[lazygit](https://github.com/jesseduffield/lazygit#installation) must be on
+your `PATH`.
+
 ```
+bb plugin install bb-plugin-lazygit
+```
+
+### From source
+
+```
+git clone https://github.com/martinlevesque/bb-plugin-lazygit.git
+cd bb-plugin-lazygit
 npm install
 bb plugin install .
 ```
@@ -45,10 +58,10 @@ bb lazygit --thread <id>      # a specific thread
   tab. Override with a full path if lazygit is not on `PATH`.
 
 ```
-bb plugin config lazygit                          # show current values
-bb plugin config lazygit set autoOpen false
-bb plugin config lazygit set command /opt/bin/lazygit
-bb plugin reload lazygit
+bb plugin config bb-plugin-lazygit                          # show current values
+bb plugin config bb-plugin-lazygit set autoOpen false
+bb plugin config bb-plugin-lazygit set command /opt/bin/lazygit
+bb plugin reload bb-plugin-lazygit
 ```
 
 Settings are read once per load, so reload after changing them.
