@@ -4,7 +4,13 @@
 // the compare-and-swap revision API.
 import type { BbPluginApi } from "@get-bb/plugin-sdk";
 import type { EnsureResult } from "./contract";
-import { PANEL_ACTION_ID, PLUGIN_ID, TAB_ID, TAB_TITLE } from "./constants";
+import {
+  LEGACY_TERMINAL_TAB_ID,
+  PANEL_ACTION_ID,
+  PLUGIN_ID,
+  PLUGIN_PANEL_TAB_ID,
+  TAB_TITLE,
+} from "./constants";
 import type { PluginStateApi } from "./state";
 
 export type TabEntry = {
@@ -74,16 +80,24 @@ export function createTabManager(
       const record = state.threads[threadId];
 
       const hasPanel = tabs.some(isOurPanelTab);
+      // bb's host app derives plugin-panel tab ids from
+      // pluginId:actionId:params. A legacy record stored under our short
+      // "lazygit" id is the same logical tab; heal it to the canonical id so
+      // the host's per-thread tab-state reconciliation sees one record and
+      // keeps it active across thread switches.
+      const ourTab = tabs.find(isOurPanelTab);
+      const needsCanonicalId =
+        ourTab !== undefined && ourTab.id !== PLUGIN_PANEL_TAB_ID;
       // Pre-0.2 versions used a native terminal tab; migrate it in place.
       const legacy = tabs.find(
         (tab) =>
           tab.kind === "terminal" &&
-          (tab.id === TAB_ID ||
+          (tab.id === LEGACY_TERMINAL_TAB_ID ||
             (record?.terminalId != null &&
               tab.terminalId === record.terminalId)),
       );
 
-      if (hasPanel && legacy === undefined) {
+      if (hasPanel && !needsCanonicalId && legacy === undefined) {
         return { status: "already-present" };
       }
       if (!hasPanel && legacy === undefined && !force && record !== undefined) {
@@ -91,10 +105,12 @@ export function createTabManager(
         return { status: "suppressed" };
       }
 
-      const nextTabs: TabEntry[] = tabs.filter((tab) => tab !== legacy);
-      if (!hasPanel) {
+      const nextTabs: TabEntry[] = tabs.filter(
+        (tab) => tab !== legacy && tab !== ourTab,
+      );
+      if (!hasPanel || needsCanonicalId) {
         nextTabs.push({
-          id: TAB_ID,
+          id: PLUGIN_PANEL_TAB_ID,
           kind: "plugin-panel",
           pluginId: PLUGIN_ID,
           actionId: PANEL_ACTION_ID,

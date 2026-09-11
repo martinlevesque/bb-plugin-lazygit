@@ -10,6 +10,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
 import plugin from "../server";
+import { PLUGIN_PANEL_TAB_ID } from "../server/constants";
 
 type SdkOverrides = NonNullable<Parameters<typeof createFakePluginHost>[0]>["sdk"];
 
@@ -180,8 +181,30 @@ function createWorld() {
     /** Simulate the user closing the Lazygit panel tab in the app. */
     closeLazygitTab: (threadId: string) => {
       const entry = tabEntry(threadId);
-      entry.tabs = entry.tabs.filter((tab) => tab.id !== "lazygit");
+      entry.tabs = entry.tabs.filter(
+        (tab) =>
+          !(
+            tab.kind === "plugin-panel" &&
+            tab.pluginId === "lazygit" &&
+            tab.actionId === "lazygit"
+          ),
+      );
       entry.revision += 1;
+    },
+    /** Seed a legacy (pre-fix) plugin-panel tab under the short id. */
+    seedLegacyPanelTab: (threadId: string) => {
+      const entry = tabEntry(threadId);
+      if (!entry.tabs.some((tab) => tab.id === "lazygit" && tab.kind === "plugin-panel")) {
+        entry.tabs.push({
+          id: "lazygit",
+          kind: "plugin-panel",
+          pluginId: "lazygit",
+          actionId: "lazygit",
+          title: "Lazygit",
+          paramsJson: null,
+        });
+        entry.revision += 1;
+      }
     },
   };
 }
@@ -213,7 +236,7 @@ describe("bb-plugin-lazygit backend e2e", () => {
     })) as { status: string };
     expect(ensured.status).toBe("created");
     expect(world.tabsFor(THREAD_ID)).toContainEqual({
-      id: "lazygit",
+      id: PLUGIN_PANEL_TAB_ID,
       kind: "plugin-panel",
       pluginId: "lazygit",
       actionId: "lazygit",
@@ -341,8 +364,31 @@ describe("bb-plugin-lazygit backend e2e", () => {
     })) as { status: string };
     expect(forced.status).toBe("created");
     expect(
-      world.tabsFor(THREAD_ID).some((tab) => tab.id === "lazygit"),
+      world.tabsFor(THREAD_ID).some((tab) => tab.id === PLUGIN_PANEL_TAB_ID),
     ).toBe(true);
+  });
+
+  it("heals a legacy tab stored under the short id to the canonical panel id", async () => {
+    const { world, harness } = await setup();
+    cleanup = () => harness.lifecycle.dispose();
+
+    // The pre-0.3 tab write used the short id "lazygit"; bb's host app
+    // derives the canonical plugin-panel id, so a mismatched record makes it
+    // drop the tab's active selection on thread switches.
+    world.seedLegacyPanelTab(THREAD_ID);
+    const tabs = world.tabsFor(THREAD_ID);
+    expect(tabs.some((tab) => tab.id === "lazygit" && tab.kind === "plugin-panel")).toBe(true);
+
+    const ensured = (await harness.behavior.callRpc("ensure_lazygit_tab", {
+      threadId: THREAD_ID,
+    })) as { status: string };
+    expect(ensured.status).toBe("already-present");
+    expect(
+      world.tabsFor(THREAD_ID).some((tab) => tab.id === PLUGIN_PANEL_TAB_ID),
+    ).toBe(true);
+    expect(
+      world.tabsFor(THREAD_ID).some((tab) => tab.id === "lazygit" && tab.kind === "plugin-panel"),
+    ).toBe(false);
   });
 
   describe("given a non-git folder", () => {
@@ -466,7 +512,8 @@ describe("bb-plugin-lazygit backend e2e", () => {
     expect(opened.exitCode).toBe(0);
     expect(opened.stdout).toContain("th_cli");
     expect(
-      world.tabsFor("th_cli").some((tab) => tab.id === "lazygit"),
+      world.tabsFor("th_cli").some((tab) => tab.id === PLUGIN_PANEL_TAB_ID),
     ).toBe(true);
+
   });
 });
