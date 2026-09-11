@@ -2,21 +2,44 @@
 // bridged to the thread's persistent lazygit session (see the
 // use-lazygit-terminal hook) plus the placeholder overlays for the
 // connecting / no-repo / exited / error phases.
+import { useEffect, useState } from "react";
 import type { PluginThreadPanelProps } from "@get-bb/plugin-sdk/app";
 import { useRpc } from "@get-bb/plugin-sdk/app";
 import type { rpcContract } from "../../server/contract";
 import { useLazygitTerminal } from "../hooks/use-lazygit-terminal";
 import { PanelMessage } from "./panel-message";
 
+// Reconnecting to an already-running session is fast; only show the
+// connecting overlay when startup genuinely takes a while.
+const CONNECTING_OVERLAY_DELAY_MS = 150;
+
+/** Becomes true only when `active` stays true for `delayMs`. */
+function useDelayedFlag(active: boolean, delayMs: number): boolean {
+  const [flag, setFlag] = useState(false);
+  useEffect(() => {
+    if (!active) {
+      setFlag(false);
+      return;
+    }
+    const timer = setTimeout(() => setFlag(true), delayMs);
+    return () => clearTimeout(timer);
+  }, [active, delayMs]);
+  return flag;
+}
+
 export function LazygitPanel({ threadId }: PluginThreadPanelProps) {
   const rpc = useRpc<typeof rpcContract>();
   const { containerRef, phase, initializing, restart, initRepo } =
     useLazygitTerminal(threadId, rpc);
+  const showConnecting = useDelayedFlag(
+    phase.kind === "connecting",
+    CONNECTING_OVERLAY_DELAY_MS,
+  );
 
   return (
     <div className="relative h-full min-h-0 flex-1 overflow-hidden bg-background text-foreground">
       <div ref={containerRef} className="h-full w-full pl-2 pt-1" />
-      {phase.kind === "connecting" ? (
+      {phase.kind === "connecting" && showConnecting ? (
         <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
           {phase.waiting
             ? "Waiting for the thread's environment…"
