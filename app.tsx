@@ -7,6 +7,7 @@
 // server/contract.ts.
 import { definePluginApp } from "@get-bb/plugin-sdk/app";
 import { toast } from "sonner";
+import "@xterm/xterm/css/xterm.css";
 import { AutoOpenOverlay } from "./app/components/auto-open-overlay";
 import { LazygitPanel } from "./app/components/lazygit-panel";
 import { ensureLazygit } from "./app/rpc-store";
