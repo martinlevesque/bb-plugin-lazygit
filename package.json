@@ -1,7 +1,12 @@
 {
   "name": "bb-plugin-lazygit",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "type": "module",
+  "files": [
+    "dist",
+    "server",
+    "skills"
+  ],
   "engines": {
     "bb": ">=0.42",
     "bbPluginSdk": ">=0.4.47"
