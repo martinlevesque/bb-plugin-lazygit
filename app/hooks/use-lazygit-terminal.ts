@@ -41,6 +41,7 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
   const rpcRef = useRef(rpc);
   rpcRef.current = rpc;
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const terminalIdRef = useRef<string | null>(null);
   const [phase, setPhaseState] = useState<PanelPhase>(() =>
     initialPhase(threadId),
   );
@@ -57,6 +58,34 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
   };
   const [attempt, setAttempt] = useState(0);
   const [initializing, setInitializing] = useState(false);
+
+  function observeResize(
+    term: XTerm,
+    fit: FitAddon,
+    isDisposed: () => boolean,
+  ): ResizeObserver {
+    let lastCols = term.cols;
+    let lastRows = term.rows;
+    const ro = new ResizeObserver(() => {
+      if (isDisposed()) return;
+      fit.fit();
+      if (term.cols !== lastCols || term.rows !== lastRows) {
+        lastCols = term.cols;
+        lastRows = term.rows;
+        if (terminalIdRef.current !== null) {
+          rpcRef.current
+            .call("lazygit_resize", {
+              terminalId: terminalIdRef.current,
+              cols: lastCols,
+              rows: lastRows,
+            })
+            .catch(() => {});
+        }
+      }
+    });
+    ro.observe(containerRef.current!);
+    return ro;
+  }
 
   useEffect(() => {
     const container = containerRef.current;
@@ -84,7 +113,8 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
     const fit = new FitAddon();
     term.loadAddon(fit);
     term.open(container);
-    fit.fit();
+
+    observer = observeResize(term, fit, () => disposed);
 
     // Keep the cached phase (ready/exited/no-repo) while re-attaching; the
     // first attach failure downgrades to "connecting" if the session is gone.
@@ -138,6 +168,7 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
         return;
       }
       const terminalId = session.terminalId;
+      terminalIdRef.current = terminalId;
 
       // Replay recent output so a remount (tab switch) restores the screen.
       let seq = 0;
@@ -160,25 +191,6 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
           .call("lazygit_input", { terminalId, dataBase64: encodeBase64(data) })
           .catch(() => {});
       });
-
-      let lastCols = term.cols;
-      let lastRows = term.rows;
-      observer = new ResizeObserver(() => {
-        if (disposed) return;
-        fit.fit();
-        if (term.cols !== lastCols || term.rows !== lastRows) {
-          lastCols = term.cols;
-          lastRows = term.rows;
-          rpcRef.current
-            .call("lazygit_resize", {
-              terminalId,
-              cols: lastCols,
-              rows: lastRows,
-            })
-            .catch(() => {});
-        }
-      });
-      observer.observe(container);
 
       let failures = 0;
       const pump = async () => {
