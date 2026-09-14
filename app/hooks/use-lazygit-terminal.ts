@@ -63,28 +63,51 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
     term: XTerm,
     fit: FitAddon,
     isDisposed: () => boolean,
-  ): ResizeObserver {
+  ): { observer: ResizeObserver; dispose: () => void } {
     let lastCols = term.cols;
     let lastRows = term.rows;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const fitSafe = () => {
+      try {
+        fit.fit();
+      } catch {
+        // Container may have zero dimensions during panel animation; ignore.
+      }
+    };
+
     const ro = new ResizeObserver(() => {
       if (isDisposed()) return;
-      fit.fit();
-      if (term.cols !== lastCols || term.rows !== lastRows) {
-        lastCols = term.cols;
-        lastRows = term.rows;
-        if (terminalIdRef.current !== null) {
-          rpcRef.current
-            .call("lazygit_resize", {
-              terminalId: terminalIdRef.current,
-              cols: lastCols,
-              rows: lastRows,
-            })
-            .catch(() => {});
+      // Debounce rapid resize events (panel drag, window resize, animations)
+      // so xterm.js only recalculates once the layout has settled.
+      if (debounceTimer !== null) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
+        if (isDisposed()) return;
+        fitSafe();
+        if (term.cols !== lastCols || term.rows !== lastRows) {
+          lastCols = term.cols;
+          lastRows = term.rows;
+          if (terminalIdRef.current !== null) {
+            rpcRef.current
+              .call("lazygit_resize", {
+                terminalId: terminalIdRef.current,
+                cols: lastCols,
+                rows: lastRows,
+              })
+              .catch(() => {});
+          }
         }
-      }
+      }, 50);
     });
     ro.observe(containerRef.current!);
-    return ro;
+    return {
+      observer: ro,
+      dispose: () => {
+        if (debounceTimer !== null) clearTimeout(debounceTimer);
+        ro.disconnect();
+      },
+    };
   }
 
   useEffect(() => {
@@ -95,7 +118,7 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
     let attachTimer = 0;
     let outputTimer = 0;
     let statusTimer = 0;
-    let observer: ResizeObserver | null = null;
+    let resizeCleanup: (() => void) | null = null;
 
     const styles = getComputedStyle(container);
     const term = new XTerm({
@@ -114,7 +137,14 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
     term.loadAddon(fit);
     term.open(container);
 
-    observer = observeResize(term, fit, () => disposed);
+    // Initial fit so the terminal fills the container from the first frame.
+    try {
+      fit.fit();
+    } catch {
+      // Ignore; the ResizeObserver will retry once the layout settles.
+    }
+    const { observer, dispose } = observeResize(term, fit, () => disposed);
+    resizeCleanup = dispose;
 
     // Keep the cached phase (ready/exited/no-repo) while re-attaching; the
     // first attach failure downgrades to "connecting" if the session is gone.
@@ -256,7 +286,7 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
       window.clearTimeout(attachTimer);
       window.clearTimeout(outputTimer);
       window.clearTimeout(statusTimer);
-      observer?.disconnect();
+      resizeCleanup?.();
       term.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
