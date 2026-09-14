@@ -89,26 +89,30 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
     // Set up resize observer immediately to handle tab switches.
     // When switching between diff and lazygit tabs, the container dimensions
     // change and we need to refit the terminal to avoid layout breakage.
-    let lastCols = term.cols;
-    let lastRows = term.rows;
-    observer = new ResizeObserver(() => {
-      if (disposed) return;
-      fit.fit();
-      if (term.cols !== lastCols || term.rows !== lastRows) {
-        lastCols = term.cols;
-        lastRows = term.rows;
-        if (terminalIdRef.current !== null) {
-          rpcRef.current
-            .call("lazygit_resize", {
-              terminalId: terminalIdRef.current,
-              cols: lastCols,
-              rows: lastRows,
-            })
-            .catch(() => {});
+    function observeResize() {
+      let lastCols = term.cols;
+      let lastRows = term.rows;
+      const ro = new ResizeObserver(() => {
+        if (disposed) return;
+        fit.fit();
+        if (term.cols !== lastCols || term.rows !== lastRows) {
+          lastCols = term.cols;
+          lastRows = term.rows;
+          if (terminalIdRef.current !== null) {
+            rpcRef.current
+              .call("lazygit_resize", {
+                terminalId: terminalIdRef.current,
+                cols: lastCols,
+                rows: lastRows,
+              })
+              .catch(() => {});
+          }
         }
-      }
-    });
-    observer.observe(container);
+      });
+      ro.observe(container!);
+      return ro;
+    }
+    observer = observeResize();
 
     // Keep the cached phase (ready/exited/no-repo) while re-attaching; the
     // first attach failure downgrades to "connecting" if the session is gone.
