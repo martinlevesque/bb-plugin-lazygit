@@ -59,6 +59,34 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
   const [attempt, setAttempt] = useState(0);
   const [initializing, setInitializing] = useState(false);
 
+  function observeResize(
+    term: XTerm,
+    fit: FitAddon,
+    isDisposed: () => boolean,
+  ): ResizeObserver {
+    let lastCols = term.cols;
+    let lastRows = term.rows;
+    const ro = new ResizeObserver(() => {
+      if (isDisposed()) return;
+      fit.fit();
+      if (term.cols !== lastCols || term.rows !== lastRows) {
+        lastCols = term.cols;
+        lastRows = term.rows;
+        if (terminalIdRef.current !== null) {
+          rpcRef.current
+            .call("lazygit_resize", {
+              terminalId: terminalIdRef.current,
+              cols: lastCols,
+              rows: lastRows,
+            })
+            .catch(() => {});
+        }
+      }
+    });
+    ro.observe(containerRef.current!);
+    return ro;
+  }
+
   useEffect(() => {
     const container = containerRef.current;
     if (container === null) return;
@@ -86,33 +114,7 @@ export function useLazygitTerminal(threadId: string, rpc: Rpc) {
     term.loadAddon(fit);
     term.open(container);
 
-    // Set up resize observer immediately to handle tab switches.
-    // When switching between diff and lazygit tabs, the container dimensions
-    // change and we need to refit the terminal to avoid layout breakage.
-    function observeResize() {
-      let lastCols = term.cols;
-      let lastRows = term.rows;
-      const ro = new ResizeObserver(() => {
-        if (disposed) return;
-        fit.fit();
-        if (term.cols !== lastCols || term.rows !== lastRows) {
-          lastCols = term.cols;
-          lastRows = term.rows;
-          if (terminalIdRef.current !== null) {
-            rpcRef.current
-              .call("lazygit_resize", {
-                terminalId: terminalIdRef.current,
-                cols: lastCols,
-                rows: lastRows,
-              })
-              .catch(() => {});
-          }
-        }
-      });
-      ro.observe(container!);
-      return ro;
-    }
-    observer = observeResize();
+    observer = observeResize(term, fit, () => disposed);
 
     // Keep the cached phase (ready/exited/no-repo) while re-attaching; the
     // first attach failure downgrades to "connecting" if the session is gone.
