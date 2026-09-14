@@ -19706,7 +19706,9 @@ var rpcContract = defineRpcContract({
     output: external_exports.object({
       terminalId: external_exports.string(),
       status: external_exports.string(),
-      exitCode: external_exports.number().nullable()
+      exitCode: external_exports.number().nullable(),
+      // A fresh session's replay tail contains its full init from seq 0.
+      created: external_exports.boolean()
     })
   },
   lazygit_output: {
@@ -19998,11 +20000,17 @@ function createTerminalManager(bb, deps) {
           if (existing.cols !== cols || existing.rows !== rows) {
             await bb.sdk.terminals.resize({ terminalId: existing.id, cols, rows }).catch(() => {
             });
+          } else {
+            await bb.sdk.terminals.resize({ terminalId: existing.id, cols, rows: rows + 1 }).catch(() => {
+            });
+            await bb.sdk.terminals.resize({ terminalId: existing.id, cols, rows }).catch(() => {
+            });
           }
           return {
             terminalId: existing.id,
             status: existing.status,
-            exitCode: existing.exitCode
+            exitCode: existing.exitCode,
+            created: false
           };
         }
         bb.log.info(
@@ -20029,7 +20037,8 @@ function createTerminalManager(bb, deps) {
     return {
       terminalId: session.id,
       status: session.status,
-      exitCode: session.exitCode
+      exitCode: session.exitCode,
+      created: true
     };
   }
   const inflightAttach = /* @__PURE__ */ new Map();

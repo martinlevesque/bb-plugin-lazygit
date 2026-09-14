@@ -26,6 +26,8 @@ export const rpcContract = defineRpcContract({
       terminalId: z.string(),
       status: z.string(),
       exitCode: z.number().nullable(),
+      // A fresh session's replay tail contains its full init from seq 0.
+      created: z.boolean(),
     }),
   },
   lazygit_output: {
@@ -79,4 +81,5 @@ export type AttachResult = {
   terminalId: string;
   status: string;
   exitCode: number | null;
+  created: boolean;
 };
