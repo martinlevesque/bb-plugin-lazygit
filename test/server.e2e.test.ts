@@ -51,6 +51,7 @@ function createWorld() {
   const tabsByThread = new Map<string, { revision: number; tabs: TabRecord[] }>();
   const terminals = new Map<string, TerminalRecord>();
   const inputs: { terminalId: string; dataBase64: string }[] = [];
+  const resizes: { terminalId: string; cols: number; rows: number }[] = [];
   let nextTerminalSeq = 1;
   // The on-disk reality `git rev-parse` sees. bb's own Environment.isGitRepo
   // is a provision-time snapshot; the plugin must not consult it, so the
@@ -137,6 +138,7 @@ function createWorld() {
         if (session !== undefined) {
           session.cols = cols;
           session.rows = rows;
+          resizes.push({ terminalId, cols, rows });
         }
         return { ok: true };
       },
@@ -162,6 +164,7 @@ function createWorld() {
   return {
     sdk,
     inputs,
+    resizes,
     tabsFor: (threadId: string) => clone(tabEntry(threadId).tabs),
     terminal: (id: string) => {
       const session = terminals.get(id);
@@ -309,6 +312,32 @@ describe("bb-plugin-lazygit backend e2e", () => {
       terminalId: attached.terminalId,
     })) as { status: string; exitCode: number | null };
     expect(status).toEqual({ status: "running", exitCode: null });
+  });
+
+  it("nudges the size on same-dims re-attach to force a repaint", async () => {
+    const { world, harness } = await setup();
+    cleanup = () => harness.lifecycle.dispose();
+
+    const attached = (await harness.behavior.callRpc("lazygit_attach", {
+      threadId: THREAD_ID,
+      cols: 80,
+      rows: 24,
+    })) as { terminalId: string; created: boolean };
+    expect(attached.created).toBe(true);
+
+    // Re-attach with unchanged dimensions (a remount after a tab switch).
+    const reattached = (await harness.behavior.callRpc("lazygit_attach", {
+      threadId: THREAD_ID,
+      cols: 80,
+      rows: 24,
+    })) as { terminalId: string; created: boolean };
+    expect(reattached.terminalId).toBe(attached.terminalId);
+    expect(reattached.created).toBe(false);
+    expect(world.terminalCount()).toBe(1);
+    expect(world.resizes).toEqual([
+      { terminalId: attached.terminalId, cols: 80, rows: 25 },
+      { terminalId: attached.terminalId, cols: 80, rows: 24 },
+    ]);
   });
 
   it("replaces a live lazygit session stuck on the not-a-repo prompt", async () => {

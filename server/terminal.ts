@@ -71,11 +71,23 @@ export function createTerminalManager(
             await bb.sdk.terminals
               .resize({ terminalId: existing.id, cols, rows })
               .catch(() => {});
+          } else {
+            // A same-size resize generates no SIGWINCH, and the re-attaching
+            // panel replays only a recent output tail (which may cut into a
+            // frame). Nudge the size to force lazygit to repaint the full
+            // screen into the freshly mounted terminal.
+            await bb.sdk.terminals
+              .resize({ terminalId: existing.id, cols, rows: rows + 1 })
+              .catch(() => {});
+            await bb.sdk.terminals
+              .resize({ terminalId: existing.id, cols, rows })
+              .catch(() => {});
           }
           return {
             terminalId: existing.id,
             status: existing.status,
             exitCode: existing.exitCode,
+            created: false,
           };
         }
         bb.log.info(
@@ -105,6 +117,7 @@ export function createTerminalManager(
       terminalId: session.id,
       status: session.status,
       exitCode: session.exitCode,
+      created: true,
     };
   }
 
