@@ -1,9 +1,15 @@
 {
   "name": "bb-plugin-lazygit",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "type": "module",
   "files": [
+    "app.tsx",
+    "server.ts",
+    "app",
+    "components",
     "dist",
+    "hooks",
+    "lib",
     "server",
     "skills"
   ],
