@@ -1,6 +1,6 @@
 {
   "name": "bb-plugin-lazygit",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "type": "module",
   "files": [
     "dist",
@@ -17,8 +17,8 @@
     "branding": {
       "icon": "GitBranch"
     },
-    "server": "./server.ts",
-    "app": "./app.tsx"
+    "server": "./dist/server.js",
+    "app": "./dist/app.js"
   },
   "scripts": {
     "test": "vitest run",
