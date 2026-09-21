@@ -3,7 +3,13 @@
   "version": "0.2.6",
   "type": "module",
   "files": [
+    "app.tsx",
+    "server.ts",
+    "app",
+    "components",
     "dist",
+    "hooks",
+    "lib",
     "server",
     "skills"
   ],
@@ -17,8 +23,8 @@
     "branding": {
       "icon": "GitBranch"
     },
-    "server": "./dist/server.js",
-    "app": "./dist/app.js"
+    "server": "./server.ts",
+    "app": "./app.tsx"
   },
   "scripts": {
     "test": "vitest run",

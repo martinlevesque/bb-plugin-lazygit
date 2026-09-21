@@ -4,20 +4,16 @@ import { fileURLToPath as __fileURLToPath } from "node:url";
 const require = __createRequire(import.meta.url);
 var __filename = __fileURLToPath(import.meta.url);
 var __dirname = __pathDirname(__filename);
-
-// dist/server.js
-import { createRequire as __createRequire } from "node:module";
-import { dirname as __pathDirname } from "node:path";
-import { fileURLToPath as __fileURLToPath } from "node:url";
-import { defineRpcContract } from "@get-bb/plugin-sdk";
-var require2 = __createRequire(import.meta.url);
-var __filename = __fileURLToPath(import.meta.url);
-var __dirname = __pathDirname(__filename);
 var __defProp = Object.defineProperty;
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
+
+// server/contract.ts
+import { defineRpcContract } from "@get-bb/plugin-sdk";
+
+// node_modules/zod/v4/classic/external.js
 var external_exports = {};
 __export(external_exports, {
   $brand: () => $brand,
@@ -279,6 +275,8 @@ __export(external_exports, {
   xid: () => xid2,
   xor: () => xor
 });
+
+// node_modules/zod/v4/core/index.js
 var core_exports2 = {};
 __export(core_exports2, {
   $ZodAny: () => $ZodAny,
@@ -593,6 +591,8 @@ __export(core_exports2, {
   version: () => version,
   withParser: () => withParser
 });
+
+// node_modules/zod/v4/core/util.js
 var util_exports = {};
 __export(util_exports, {
   BIGINT_FORMAT_RANGES: () => BIGINT_FORMAT_RANGES,
@@ -1437,6 +1437,8 @@ function constantCatch(value) {
   fn[CONSTANT_CATCH] = true;
   return fn;
 }
+
+// node_modules/zod/v4/core/core.js
 var _a;
 var NEVER = /* @__PURE__ */ Object.freeze({
   status: "aborted"
@@ -1558,6 +1560,8 @@ function config(newConfig) {
     Object.assign(globalConfig, newConfig);
   return globalConfig;
 }
+
+// node_modules/zod/v4/core/errors.js
 function _getMessage() {
   const internals = this._zod;
   internals.message ?? (internals.message = JSON.stringify(internals.def, jsonStringifyReplacer, 2));
@@ -1597,8 +1601,8 @@ var initializer = (inst, def) => {
     });
   }
 };
-var $ZodError = /* @__PURE__ */ $constructor("$ZodError", initializer);
-var $ZodRealError = /* @__PURE__ */ $constructor("$ZodError", initializer, void 0, {
+var $ZodError = $constructor("$ZodError", initializer);
+var $ZodRealError = $constructor("$ZodError", initializer, void 0, {
   Parent: Error
 });
 function node(obj, key, make) {
@@ -1748,6 +1752,8 @@ function prettifyError(error62) {
   }
   return lines.join("\n");
 }
+
+// node_modules/zod/v4/core/parse.js
 function finalizeParams(callee, params) {
   return { callee: params?.callee ?? callee, Err: params?.Err };
 }
@@ -1906,6 +1912,8 @@ var _safeDecodeAsync = (_Err) => async (schema, value, _ctx) => {
   return _safeParseAsync(_Err)(schema, value, _ctx);
 };
 var safeDecodeAsync = /* @__PURE__ */ _safeDecodeAsync($ZodRealError);
+
+// node_modules/zod/v4/core/regexes.js
 var regexes_exports = {};
 __export(regexes_exports, {
   anyString: () => anyString,
@@ -2074,6 +2082,8 @@ var sha384_base64url = /* @__PURE__ */ fixedBase64url(64);
 var sha512_hex = /^[0-9a-fA-F]{128}$/;
 var sha512_base64 = /* @__PURE__ */ fixedBase64(86, "==");
 var sha512_base64url = /* @__PURE__ */ fixedBase64url(86);
+
+// node_modules/zod/v4/core/checks.js
 var $ZodCheck = /* @__PURE__ */ $constructor("$ZodCheck", (inst, def) => {
   var _a3;
   inst._zod ?? (inst._zod = {});
@@ -2520,6 +2530,8 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
     payload.value = def.tx(payload.value);
   };
 });
+
+// node_modules/zod/v4/core/doc.js
 var Doc = class {
   constructor(args = [], closed = {}) {
     this.content = [];
@@ -2559,11 +2571,15 @@ ${content.join("\n")}
     return factory(...Object.values(this.closed));
   }
 };
+
+// node_modules/zod/v4/core/versions.js
 var version = {
   major: 4,
   minor: 6,
   patch: 1
 };
+
+// node_modules/zod/v4/core/schemas.js
 var $ZodType = /* @__PURE__ */ $constructor("$ZodType", (inst, def) => {
   var _a3;
   inst ?? (inst = {});
@@ -5009,6 +5025,8 @@ var $ZodProperties = /* @__PURE__ */ $constructor("$ZodProperties", (inst, def) 
     yield this;
   }
 });
+
+// node_modules/zod/v4/core/memoizer.js
 var $ZodCyclicError = class extends Error {
   constructor() {
     super(`Cannot parse a reference cycle that closes through a transform`);
@@ -5287,6 +5305,8 @@ function isBackEdge(ctx, value) {
   const backEdges = ctx[STATE]?.backEdges;
   return backEdges !== void 0 && isRef(value) && backEdges.has(value);
 }
+
+// node_modules/zod/v4/locales/index.js
 var locales_exports = {};
 __export(locales_exports, {
   ar: () => ar_default,
@@ -5353,6 +5373,8 @@ __export(locales_exports, {
   zhCN: () => zh_CN_default,
   zhTW: () => zh_TW_default
 });
+
+// node_modules/zod/v4/locales/ar.js
 var error = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0641", verb: "\u0623\u0646 \u064A\u062D\u0648\u064A" },
@@ -5462,6 +5484,8 @@ function ar_default() {
     localeError: error()
   };
 }
+
+// node_modules/zod/v4/locales/az.js
 var error2 = () => {
   const Sizable = {
     string: { unit: "simvol", verb: "olmal\u0131d\u0131r" },
@@ -5570,6 +5594,8 @@ function az_default() {
     localeError: error2()
   };
 }
+
+// node_modules/zod/v4/locales/be.js
 function getBelarusianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -5736,6 +5762,8 @@ function be_default() {
     localeError: error3()
   };
 }
+
+// node_modules/zod/v4/locales/bg.js
 var error4 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0430", verb: "\u0434\u0430 \u0441\u044A\u0434\u044A\u0440\u0436\u0430" },
@@ -5859,6 +5887,8 @@ function bg_default() {
     localeError: error4()
   };
 }
+
+// node_modules/zod/v4/locales/bn.js
 var error5 = () => {
   const Sizable = {
     string: { unit: "\u0985\u0995\u09CD\u09B7\u09B0", verb: "\u09A5\u09BE\u0995\u09A4\u09C7 \u09B9\u09AC\u09C7" },
@@ -5970,6 +6000,8 @@ function bn_default() {
     localeError: error5()
   };
 }
+
+// node_modules/zod/v4/locales/ca.js
 var error6 = () => {
   const Sizable = {
     string: { unit: "car\xE0cters", verb: "contenir" },
@@ -6081,6 +6113,8 @@ function ca_default() {
     localeError: error6()
   };
 }
+
+// node_modules/zod/v4/locales/ckb.js
 var error7 = () => {
   const Sizable = {
     string: { unit: "\u067E\u06CC\u062A", verb: "\u0628\u06CE\u062A" },
@@ -6211,6 +6245,8 @@ function ckb_default() {
     localeError: error7()
   };
 }
+
+// node_modules/zod/v4/locales/cs.js
 var error8 = () => {
   const Sizable = {
     string: { unit: "znak\u016F", verb: "m\xEDt" },
@@ -6325,6 +6361,8 @@ function cs_default() {
     localeError: error8()
   };
 }
+
+// node_modules/zod/v4/locales/da.js
 var error9 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "havde" },
@@ -6443,6 +6481,8 @@ function da_default() {
     localeError: error9()
   };
 }
+
+// node_modules/zod/v4/locales/de.js
 var error10 = () => {
   const Sizable = {
     string: { unit: "Zeichen", verb: "zu haben" },
@@ -6554,6 +6594,8 @@ function de_default() {
     localeError: error10()
   };
 }
+
+// node_modules/zod/v4/locales/el.js
 var error11 = () => {
   const Sizable = {
     string: { unit: "\u03C7\u03B1\u03C1\u03B1\u03BA\u03C4\u03AE\u03C1\u03B5\u03C2", verb: "\u03BD\u03B1 \u03AD\u03C7\u03B5\u03B9" },
@@ -6664,6 +6706,8 @@ function el_default() {
     localeError: error11()
   };
 }
+
+// node_modules/zod/v4/locales/en.js
 var error12 = () => {
   const Sizable = {
     string: { unit: "characters", verb: "to have" },
@@ -6786,6 +6830,8 @@ function en_default() {
     localeError: error12()
   };
 }
+
+// node_modules/zod/v4/locales/eo.js
 var error13 = () => {
   const Sizable = {
     string: { unit: "karaktrojn", verb: "havi" },
@@ -6898,6 +6944,8 @@ function eo_default() {
     localeError: error13()
   };
 }
+
+// node_modules/zod/v4/locales/es.js
 var error14 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "tener" },
@@ -7032,6 +7080,8 @@ function es_default() {
     localeError: error14()
   };
 }
+
+// node_modules/zod/v4/locales/fa.js
 var error15 = () => {
   const Sizable = {
     string: { unit: "\u06A9\u0627\u0631\u0627\u06A9\u062A\u0631", verb: "\u062F\u0627\u0634\u062A\u0647 \u0628\u0627\u0634\u062F" },
@@ -7149,6 +7199,8 @@ function fa_default() {
     localeError: error15()
   };
 }
+
+// node_modules/zod/v4/locales/fi.js
 var error16 = () => {
   const Sizable = {
     string: { unit: "merkki\xE4", subject: "merkkijonon" },
@@ -7264,6 +7316,8 @@ function fi_default() {
     localeError: error16()
   };
 }
+
+// node_modules/zod/v4/locales/fr.js
 var error17 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -7391,6 +7445,8 @@ function fr_default() {
     localeError: error17()
   };
 }
+
+// node_modules/zod/v4/locales/fr-CA.js
 var error18 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -7501,6 +7557,8 @@ function fr_CA_default() {
     localeError: error18()
   };
 }
+
+// node_modules/zod/v4/locales/gu.js
 var error19 = () => {
   const Sizable = {
     string: { unit: "\u0A85\u0A95\u0ACD\u0AB7\u0AB0", verb: "\u0AB9\u0ACB\u0AB5\u0ABE \u0A9C\u0ACB\u0A88\u0A8F" },
@@ -7612,6 +7670,8 @@ function gu_default() {
     localeError: error19()
   };
 }
+
+// node_modules/zod/v4/locales/he.js
 var error20 = () => {
   const TypeNames = {
     string: { label: "\u05DE\u05D7\u05E8\u05D5\u05D6\u05EA", gender: "f" },
@@ -7811,6 +7871,8 @@ function he_default() {
     localeError: error20()
   };
 }
+
+// node_modules/zod/v4/locales/hi.js
 var error21 = () => {
   const Sizable = {
     string: { unit: "\u0905\u0915\u094D\u0937\u0930", verb: "\u0930\u0916\u0928\u0947 \u0915\u0947 \u0932\u093F\u090F" },
@@ -7920,6 +7982,8 @@ function hi_default() {
     localeError: error21()
   };
 }
+
+// node_modules/zod/v4/locales/hr.js
 var error22 = () => {
   const Sizable = {
     string: { unit: "znakova", verb: "imati" },
@@ -8044,6 +8108,8 @@ function hr_default() {
     localeError: error22()
   };
 }
+
+// node_modules/zod/v4/locales/hu.js
 var error23 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "legyen" },
@@ -8155,6 +8221,8 @@ function hu_default() {
     localeError: error23()
   };
 }
+
+// node_modules/zod/v4/locales/hy.js
 function getArmenianPlural(count, one, many) {
   return Math.abs(count) === 1 ? one : many;
 }
@@ -8311,6 +8379,8 @@ function hy_default() {
     localeError: error24()
   };
 }
+
+// node_modules/zod/v4/locales/id.js
 var error25 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "memiliki" },
@@ -8420,6 +8490,8 @@ function id_default() {
     localeError: error25()
   };
 }
+
+// node_modules/zod/v4/locales/is.js
 var error26 = () => {
   const Sizable = {
     string: { unit: "stafi", verb: "a\xF0 hafa" },
@@ -8532,6 +8604,8 @@ function is_default() {
     localeError: error26()
   };
 }
+
+// node_modules/zod/v4/locales/it.js
 var error27 = () => {
   const Sizable = {
     string: { unit: "caratteri", verb: "avere" },
@@ -8643,6 +8717,8 @@ function it_default() {
     localeError: error27()
   };
 }
+
+// node_modules/zod/v4/locales/ja.js
 var error28 = () => {
   const Sizable = {
     string: { unit: "\u6587\u5B57", verb: "\u3067\u3042\u308B" },
@@ -8753,6 +8829,8 @@ function ja_default() {
     localeError: error28()
   };
 }
+
+// node_modules/zod/v4/locales/ka.js
 var error29 = () => {
   const Sizable = {
     string: { unit: "\u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD", verb: "\u10E3\u10DC\u10D3\u10D0 \u10E8\u10D4\u10D8\u10EA\u10D0\u10D5\u10D3\u10D4\u10E1" },
@@ -8868,6 +8946,8 @@ function ka_default() {
     localeError: error29()
   };
 }
+
+// node_modules/zod/v4/locales/km.js
 var error30 = () => {
   const Sizable = {
     string: { unit: "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A", verb: "\u1782\u17BD\u179A\u1798\u17B6\u1793" },
@@ -8981,9 +9061,13 @@ function km_default() {
     localeError: error30()
   };
 }
+
+// node_modules/zod/v4/locales/kh.js
 function kh_default() {
   return km_default();
 }
+
+// node_modules/zod/v4/locales/kn.js
 var error31 = () => {
   const Sizable = {
     string: { unit: "\u0C85\u0C95\u0CCD\u0CB7\u0CB0\u0C97\u0CB3\u0CC1", verb: "\u0CB9\u0CCA\u0C82\u0CA6\u0CB2\u0CC1" },
@@ -9097,6 +9181,8 @@ function kn_default() {
     localeError: error31()
   };
 }
+
+// node_modules/zod/v4/locales/ko.js
 var error32 = () => {
   const Sizable = {
     string: { unit: "\uBB38\uC790", verb: "to have" },
@@ -9211,6 +9297,8 @@ function ko_default() {
     localeError: error32()
   };
 }
+
+// node_modules/zod/v4/locales/lt.js
 var capitalizeFirstCharacter = (text) => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
@@ -9416,6 +9504,8 @@ function lt_default() {
     localeError: error33()
   };
 }
+
+// node_modules/zod/v4/locales/mk.js
 var error34 = () => {
   const Sizable = {
     string: { unit: "\u0437\u043D\u0430\u0446\u0438", verb: "\u0434\u0430 \u0438\u043C\u0430\u0430\u0442" },
@@ -9528,6 +9618,8 @@ function mk_default() {
     localeError: error34()
   };
 }
+
+// node_modules/zod/v4/locales/ms.js
 var error35 = () => {
   const Sizable = {
     string: { unit: "aksara", verb: "mempunyai" },
@@ -9638,6 +9730,8 @@ function ms_default() {
     localeError: error35()
   };
 }
+
+// node_modules/zod/v4/locales/ne.js
 var error36 = () => {
   const Sizable = {
     string: { unit: "\u0905\u0915\u094D\u0937\u0930", verb: "\u0939\u0941\u0928\u0941\u092A\u0930\u094D\u091B" },
@@ -9747,6 +9841,8 @@ function ne_default() {
     localeError: error36()
   };
 }
+
+// node_modules/zod/v4/locales/nl.js
 var error37 = () => {
   const Sizable = {
     string: { unit: "tekens", verb: "heeft" },
@@ -9860,6 +9956,8 @@ function nl_default() {
     localeError: error37()
   };
 }
+
+// node_modules/zod/v4/locales/nn.js
 var error38 = () => {
   const Sizable = {
     string: { unit: "teikn", verb: "\xE5 ha" },
@@ -9971,6 +10069,8 @@ function nn_default() {
     localeError: error38()
   };
 }
+
+// node_modules/zod/v4/locales/no.js
 var error39 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "\xE5 ha" },
@@ -10082,6 +10182,8 @@ function no_default() {
     localeError: error39()
   };
 }
+
+// node_modules/zod/v4/locales/ota.js
 var error40 = () => {
   const Sizable = {
     string: { unit: "harf", verb: "olmal\u0131d\u0131r" },
@@ -10194,6 +10296,8 @@ function ota_default() {
     localeError: error40()
   };
 }
+
+// node_modules/zod/v4/locales/ps.js
 var error41 = () => {
   const Sizable = {
     string: { unit: "\u062A\u0648\u06A9\u064A", verb: "\u0648\u0644\u0631\u064A" },
@@ -10311,6 +10415,8 @@ function ps_default() {
     localeError: error41()
   };
 }
+
+// node_modules/zod/v4/locales/pl.js
 var error42 = () => {
   const Sizable = {
     string: { unit: "znak\xF3w", verb: "mie\u0107" },
@@ -10423,6 +10529,8 @@ function pl_default() {
     localeError: error42()
   };
 }
+
+// node_modules/zod/v4/locales/pt.js
 var error43 = () => {
   const Sizable = {
     string: { unit: "caracteres" },
@@ -10564,6 +10672,8 @@ function pt_default() {
     localeError: error43()
   };
 }
+
+// node_modules/zod/v4/locales/pt-BR.js
 var error44 = () => {
   const Sizable = {
     string: { unit: "caracteres" },
@@ -10706,6 +10816,8 @@ function pt_BR_default() {
     localeError: error44()
   };
 }
+
+// node_modules/zod/v4/locales/ro.js
 var error45 = () => {
   const Sizable = {
     string: { unit: "caractere", verb: "s\u0103 aib\u0103" },
@@ -10826,6 +10938,8 @@ function ro_default() {
     localeError: error45()
   };
 }
+
+// node_modules/zod/v4/locales/ru.js
 function getRussianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -10992,6 +11106,8 @@ function ru_default() {
     localeError: error46()
   };
 }
+
+// node_modules/zod/v4/locales/sk.js
 var error47 = () => {
   const Sizable = {
     string: { unit: "znakov", verb: "ma\u0165" },
@@ -11106,6 +11222,8 @@ function sk_default() {
     localeError: error47()
   };
 }
+
+// node_modules/zod/v4/locales/sl.js
 var error48 = () => {
   const Sizable = {
     string: { unit: "znakov", verb: "imeti" },
@@ -11218,6 +11336,8 @@ function sl_default() {
     localeError: error48()
   };
 }
+
+// node_modules/zod/v4/locales/sv.js
 var error49 = () => {
   const Sizable = {
     string: { unit: "tecken", verb: "att ha" },
@@ -11331,6 +11451,8 @@ function sv_default() {
     localeError: error49()
   };
 }
+
+// node_modules/zod/v4/locales/ta.js
 var error50 = () => {
   const Sizable = {
     string: { unit: "\u0B8E\u0BB4\u0BC1\u0BA4\u0BCD\u0BA4\u0BC1\u0B95\u0BCD\u0B95\u0BB3\u0BCD", verb: "\u0B95\u0BCA\u0BA3\u0BCD\u0B9F\u0BBF\u0BB0\u0BC1\u0B95\u0BCD\u0B95 \u0BB5\u0BC7\u0BA3\u0BCD\u0B9F\u0BC1\u0BAE\u0BCD" },
@@ -11444,6 +11566,8 @@ function ta_default() {
     localeError: error50()
   };
 }
+
+// node_modules/zod/v4/locales/tg.js
 var error51 = () => {
   const Sizable = {
     string: { unit: "\u0430\u043B\u043E\u043C\u0430\u0442", verb: "\u0434\u043E\u0448\u0442\u0430 \u0431\u043E\u0448\u0430\u0434" },
@@ -11558,6 +11682,8 @@ function tg_default() {
     localeError: error51()
   };
 }
+
+// node_modules/zod/v4/locales/th.js
 var error52 = () => {
   const Sizable = {
     string: { unit: "\u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23", verb: "\u0E04\u0E27\u0E23\u0E21\u0E35" },
@@ -11671,6 +11797,8 @@ function th_default() {
     localeError: error52()
   };
 }
+
+// node_modules/zod/v4/locales/tk.js
 var error53 = () => {
   const Sizable = {
     string: { unit: "simwol", verb: "bolmaly" },
@@ -11776,6 +11904,8 @@ function tk_default() {
     localeError: error53()
   };
 }
+
+// node_modules/zod/v4/locales/tr.js
 var error54 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "olmal\u0131" },
@@ -11884,6 +12014,8 @@ function tr_default() {
     localeError: error54()
   };
 }
+
+// node_modules/zod/v4/locales/uk.js
 var error55 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0456\u0432", verb: "\u043C\u0430\u0442\u0438\u043C\u0435" },
@@ -11995,9 +12127,13 @@ function uk_default() {
     localeError: error55()
   };
 }
+
+// node_modules/zod/v4/locales/ua.js
 function ua_default() {
   return uk_default();
 }
+
+// node_modules/zod/v4/locales/ur.js
 var error56 = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0648\u0641", verb: "\u06C1\u0648\u0646\u0627" },
@@ -12111,6 +12247,8 @@ function ur_default() {
     localeError: error56()
   };
 }
+
+// node_modules/zod/v4/locales/uz.js
 var error57 = () => {
   const Sizable = {
     string: { unit: "belgi", verb: "bo\u2018lishi kerak" },
@@ -12222,6 +12360,8 @@ function uz_default() {
     localeError: error57()
   };
 }
+
+// node_modules/zod/v4/locales/vi.js
 var error58 = () => {
   const Sizable = {
     string: { unit: "k\xFD t\u1EF1", verb: "c\xF3" },
@@ -12333,6 +12473,8 @@ function vi_default() {
     localeError: error58()
   };
 }
+
+// node_modules/zod/v4/locales/zh-CN.js
 var error59 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u7B26", verb: "\u5305\u542B" },
@@ -12445,6 +12587,8 @@ function zh_CN_default() {
     localeError: error59()
   };
 }
+
+// node_modules/zod/v4/locales/zh-TW.js
 var error60 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u5143", verb: "\u64C1\u6709" },
@@ -12555,6 +12699,8 @@ function zh_TW_default() {
     localeError: error60()
   };
 }
+
+// node_modules/zod/v4/locales/yo.js
 var error61 = () => {
   const Sizable = {
     string: { unit: "\xE0mi", verb: "n\xED" },
@@ -12665,6 +12811,8 @@ function yo_default() {
     localeError: error61()
   };
 }
+
+// node_modules/zod/v4/core/registries.js
 var _a2;
 var $output = /* @__PURE__ */ Symbol("ZodOutput");
 var $input = /* @__PURE__ */ Symbol("ZodInput");
@@ -12713,6 +12861,8 @@ function registry() {
 }
 (_a2 = globalThis).__zod_globalRegistry ?? (_a2.__zod_globalRegistry = registry());
 var globalRegistry = globalThis.__zod_globalRegistry;
+
+// node_modules/zod/v4/core/compile.js
 var INVALID = /* @__PURE__ */ Symbol.for("zod.compile.invalid");
 var FALLBACK_FLAG = /* @__PURE__ */ Symbol.for("zod.compile.fallback");
 var ZodCompileAsyncError = class extends Error {
@@ -14312,6 +14462,8 @@ function generateTransformCheck(doc, ctx, schema, accessor) {
   }
   return accessor;
 }
+
+// node_modules/zod/v4/core/api.js
 // @__NO_SIDE_EFFECTS__
 function _string(Class2, params) {
   return new Class2({
@@ -15381,6 +15533,8 @@ function _stringFormat(Class2, format, fnOrRegex, _params = {}) {
   const inst = new Class2(def);
   return inst;
 }
+
+// node_modules/zod/v4/core/to-json-schema.js
 function assignProps(target, ...sources) {
   for (const source of sources) {
     for (const key of Reflect.ownKeys(source)) {
@@ -15909,6 +16063,8 @@ var createStandardJSONSchemaMethod = (schema, io, processors = {}) => (params) =
   extractDefs(ctx, schema);
   return finalize(ctx, schema);
 };
+
+// node_modules/zod/v4/core/json-schema-processors.js
 var narrowMin = (agg, key, value) => {
   if (agg[key] === void 0 || value > agg[key])
     agg[key] = value;
@@ -16683,6 +16839,8 @@ function toJSONSchema(input2, params) {
   extractDefs(ctx, input2);
   return finalize(ctx, input2);
 }
+
+// node_modules/zod/v4/core/json-schema-generator.js
 var JSONSchemaGenerator = class {
   /** @deprecated Access via ctx instead */
   get metadataRegistry() {
@@ -16759,7 +16917,11 @@ var JSONSchemaGenerator = class {
     return plainResult;
   }
 };
+
+// node_modules/zod/v4/core/json-schema.js
 var json_schema_exports = {};
+
+// node_modules/zod/v4/classic/schemas.js
 var schemas_exports2 = {};
 __export(schemas_exports2, {
   ZodAny: () => ZodAny,
@@ -16940,6 +17102,8 @@ __export(schemas_exports2, {
   xid: () => xid2,
   xor: () => xor
 });
+
+// node_modules/zod/v4/classic/checks.js
 var checks_exports2 = {};
 __export(checks_exports2, {
   endsWith: () => _endsWith,
@@ -16972,6 +17136,8 @@ __export(checks_exports2, {
   trim: () => _trim,
   uppercase: () => _uppercase
 });
+
+// node_modules/zod/v4/classic/errors.js
 var _installedErrorProtos = /* @__PURE__ */ new WeakSet([Object.prototype, Error.prototype]);
 function _lazyMethod(proto, key, make) {
   Object.defineProperty(proto, key, {
@@ -17016,6 +17182,8 @@ var ZodError = /* @__PURE__ */ $constructor("ZodError", initializer2);
 var ZodRealError = /* @__PURE__ */ $constructor("ZodError", initializer2, void 0, {
   Parent: Error
 });
+
+// node_modules/zod/v4/classic/parse.js
 var parse2 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse2 = /* @__PURE__ */ _safeParse(ZodRealError);
@@ -17028,6 +17196,8 @@ var safeEncode2 = /* @__PURE__ */ _safeEncode(ZodRealError);
 var safeDecode2 = /* @__PURE__ */ _safeDecode(ZodRealError);
 var safeEncodeAsync2 = /* @__PURE__ */ _safeEncodeAsync(ZodRealError);
 var safeDecodeAsync2 = /* @__PURE__ */ _safeDecodeAsync(ZodRealError);
+
+// node_modules/zod/v4/classic/schemas.js
 function _ensureDefaultLocale() {
   if (!globalConfig.localeError)
     config(en_default());
@@ -17072,7 +17242,7 @@ var ZodType = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
     return this.check(superRefine(refinement, params));
   },
   overwrite(fn) {
-    return this.check(/* @__PURE__ */ _overwrite(fn));
+    return this.check(_overwrite(fn));
   },
   optional() {
     return optional(this);
@@ -17224,49 +17394,49 @@ var _ZodString = /* @__PURE__ */ $constructor(
     maxLength: (inst) => aggregateChecks(inst).maximum ?? null
   }, {
     regex(...args) {
-      return this.check(/* @__PURE__ */ _regex(...args));
+      return this.check(_regex(...args));
     },
     includes(...args) {
-      return this.check(/* @__PURE__ */ _includes(...args));
+      return this.check(_includes(...args));
     },
     startsWith(...args) {
-      return this.check(/* @__PURE__ */ _startsWith(...args));
+      return this.check(_startsWith(...args));
     },
     endsWith(...args) {
-      return this.check(/* @__PURE__ */ _endsWith(...args));
+      return this.check(_endsWith(...args));
     },
     min(...args) {
-      return this.check(/* @__PURE__ */ _minLength(...args));
+      return this.check(_minLength(...args));
     },
     max(...args) {
-      return this.check(/* @__PURE__ */ _maxLength(...args));
+      return this.check(_maxLength(...args));
     },
     length(...args) {
-      return this.check(/* @__PURE__ */ _length(...args));
+      return this.check(_length(...args));
     },
     nonempty(...args) {
-      return this.check(/* @__PURE__ */ _minLength(1, ...args));
+      return this.check(_minLength(1, ...args));
     },
     lowercase(params) {
-      return this.check(/* @__PURE__ */ _lowercase(params));
+      return this.check(_lowercase(params));
     },
     uppercase(params) {
-      return this.check(/* @__PURE__ */ _uppercase(params));
+      return this.check(_uppercase(params));
     },
     trim() {
-      return this.check(/* @__PURE__ */ _trim());
+      return this.check(_trim());
     },
     normalize(...args) {
-      return this.check(/* @__PURE__ */ _normalize(...args));
+      return this.check(_normalize(...args));
     },
     toLowerCase() {
-      return this.check(/* @__PURE__ */ _toLowerCase());
+      return this.check(_toLowerCase());
     },
     toUpperCase() {
-      return this.check(/* @__PURE__ */ _toUpperCase());
+      return this.check(_toUpperCase());
     },
     slugify() {
-      return this.check(/* @__PURE__ */ _slugify());
+      return this.check(_slugify());
     }
   })
 );
@@ -17275,86 +17445,86 @@ var ZodString = /* @__PURE__ */ $constructor("ZodString", (inst, def) => {
   _ZodString.init(inst, def);
 }, {
   email(params) {
-    return this.check(/* @__PURE__ */ _email(ZodEmail, params));
+    return this.check(_email(ZodEmail, params));
   },
   url(params) {
-    return this.check(/* @__PURE__ */ _url(ZodURL, params));
+    return this.check(_url(ZodURL, params));
   },
   jwt(params) {
-    return this.check(/* @__PURE__ */ _jwt(ZodJWT, params));
+    return this.check(_jwt(ZodJWT, params));
   },
   emoji(params) {
-    return this.check(/* @__PURE__ */ _emoji2(ZodEmoji, params));
+    return this.check(_emoji2(ZodEmoji, params));
   },
   guid(params) {
-    return this.check(/* @__PURE__ */ _guid(ZodGUID, params));
+    return this.check(_guid(ZodGUID, params));
   },
   uuid(params) {
-    return this.check(/* @__PURE__ */ _uuid(ZodUUID, params));
+    return this.check(_uuid(ZodUUID, params));
   },
   uuidv4(params) {
-    return this.check(/* @__PURE__ */ _uuidv4(ZodUUID, params));
+    return this.check(_uuidv4(ZodUUID, params));
   },
   uuidv6(params) {
-    return this.check(/* @__PURE__ */ _uuidv6(ZodUUID, params));
+    return this.check(_uuidv6(ZodUUID, params));
   },
   uuidv7(params) {
-    return this.check(/* @__PURE__ */ _uuidv7(ZodUUID, params));
+    return this.check(_uuidv7(ZodUUID, params));
   },
   nanoid(params) {
-    return this.check(/* @__PURE__ */ _nanoid(ZodNanoID, params));
+    return this.check(_nanoid(ZodNanoID, params));
   },
   cuid(params) {
-    return this.check(/* @__PURE__ */ _cuid(ZodCUID, params));
+    return this.check(_cuid(ZodCUID, params));
   },
   cuid2(params) {
-    return this.check(/* @__PURE__ */ _cuid2(ZodCUID2, params));
+    return this.check(_cuid2(ZodCUID2, params));
   },
   ulid(params) {
-    return this.check(/* @__PURE__ */ _ulid(ZodULID, params));
+    return this.check(_ulid(ZodULID, params));
   },
   base64(params) {
-    return this.check(/* @__PURE__ */ _base64(ZodBase64, params));
+    return this.check(_base64(ZodBase64, params));
   },
   base64url(params) {
-    return this.check(/* @__PURE__ */ _base64url(ZodBase64URL, params));
+    return this.check(_base64url(ZodBase64URL, params));
   },
   xid(params) {
-    return this.check(/* @__PURE__ */ _xid(ZodXID, params));
+    return this.check(_xid(ZodXID, params));
   },
   ksuid(params) {
-    return this.check(/* @__PURE__ */ _ksuid(ZodKSUID, params));
+    return this.check(_ksuid(ZodKSUID, params));
   },
   ipv4(params) {
-    return this.check(/* @__PURE__ */ _ipv4(ZodIPv4, params));
+    return this.check(_ipv4(ZodIPv4, params));
   },
   ipv6(params) {
-    return this.check(/* @__PURE__ */ _ipv6(ZodIPv6, params));
+    return this.check(_ipv6(ZodIPv6, params));
   },
   cidrv4(params) {
-    return this.check(/* @__PURE__ */ _cidrv4(ZodCIDRv4, params));
+    return this.check(_cidrv4(ZodCIDRv4, params));
   },
   cidrv6(params) {
-    return this.check(/* @__PURE__ */ _cidrv6(ZodCIDRv6, params));
+    return this.check(_cidrv6(ZodCIDRv6, params));
   },
   e164(params) {
-    return this.check(/* @__PURE__ */ _e164(ZodE164, params));
+    return this.check(_e164(ZodE164, params));
   },
   datetime(params) {
-    return this.check(/* @__PURE__ */ _isoDateTime(ZodISODateTime, params));
+    return this.check(_isoDateTime(ZodISODateTime, params));
   },
   date(params) {
-    return this.check(/* @__PURE__ */ _isoDate(ZodISODate, params));
+    return this.check(_isoDate(ZodISODate, params));
   },
   time(params) {
-    return this.check(/* @__PURE__ */ _isoTime(ZodISOTime, params));
+    return this.check(_isoTime(ZodISOTime, params));
   },
   duration(params) {
-    return this.check(/* @__PURE__ */ _isoDuration(ZodISODuration, params));
+    return this.check(_isoDuration(ZodISODuration, params));
   }
 });
 function string2(params) {
-  return /* @__PURE__ */ _string(ZodString, params);
+  return _string(ZodString, params);
 }
 var ZodStringFormat = /* @__PURE__ */ $constructor("ZodStringFormat", (inst, def) => {
   $ZodStringFormat.init(inst, def);
@@ -17381,40 +17551,40 @@ var ZodEmail = /* @__PURE__ */ $constructor("ZodEmail", (inst, def) => {
   ZodStringFormat.init(inst, def);
 });
 function email2(params) {
-  return /* @__PURE__ */ _email(ZodEmail, params);
+  return _email(ZodEmail, params);
 }
 var ZodGUID = /* @__PURE__ */ $constructor("ZodGUID", (inst, def) => {
   $ZodGUID.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function guid2(params) {
-  return /* @__PURE__ */ _guid(ZodGUID, params);
+  return _guid(ZodGUID, params);
 }
 var ZodUUID = /* @__PURE__ */ $constructor("ZodUUID", (inst, def) => {
   $ZodUUID.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function uuid2(params) {
-  return /* @__PURE__ */ _uuid(ZodUUID, params);
+  return _uuid(ZodUUID, params);
 }
 function uuidv4(params) {
-  return /* @__PURE__ */ _uuidv4(ZodUUID, params);
+  return _uuidv4(ZodUUID, params);
 }
 function uuidv6(params) {
-  return /* @__PURE__ */ _uuidv6(ZodUUID, params);
+  return _uuidv6(ZodUUID, params);
 }
 function uuidv7(params) {
-  return /* @__PURE__ */ _uuidv7(ZodUUID, params);
+  return _uuidv7(ZodUUID, params);
 }
 var ZodURL = /* @__PURE__ */ $constructor("ZodURL", (inst, def) => {
   $ZodURL.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function url(params) {
-  return /* @__PURE__ */ _url(ZodURL, params);
+  return _url(ZodURL, params);
 }
 function httpUrl(params) {
-  return /* @__PURE__ */ _url(ZodURL, {
+  return _url(ZodURL, {
     protocol: regexes_exports.httpProtocol,
     hostname: regexes_exports.domain,
     ...util_exports.normalizeParams(params)
@@ -17425,139 +17595,139 @@ var ZodEmoji = /* @__PURE__ */ $constructor("ZodEmoji", (inst, def) => {
   ZodStringFormat.init(inst, def);
 });
 function emoji2(params) {
-  return /* @__PURE__ */ _emoji2(ZodEmoji, params);
+  return _emoji2(ZodEmoji, params);
 }
 var ZodNanoID = /* @__PURE__ */ $constructor("ZodNanoID", (inst, def) => {
   $ZodNanoID.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function nanoid2(params) {
-  return /* @__PURE__ */ _nanoid(ZodNanoID, params);
+  return _nanoid(ZodNanoID, params);
 }
 var ZodCUID = /* @__PURE__ */ $constructor("ZodCUID", (inst, def) => {
   $ZodCUID.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function cuid3(params) {
-  return /* @__PURE__ */ _cuid(ZodCUID, params);
+  return _cuid(ZodCUID, params);
 }
 var ZodCUID2 = /* @__PURE__ */ $constructor("ZodCUID2", (inst, def) => {
   $ZodCUID2.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function cuid22(params) {
-  return /* @__PURE__ */ _cuid2(ZodCUID2, params);
+  return _cuid2(ZodCUID2, params);
 }
 var ZodULID = /* @__PURE__ */ $constructor("ZodULID", (inst, def) => {
   $ZodULID.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function ulid2(params) {
-  return /* @__PURE__ */ _ulid(ZodULID, params);
+  return _ulid(ZodULID, params);
 }
 var ZodXID = /* @__PURE__ */ $constructor("ZodXID", (inst, def) => {
   $ZodXID.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function xid2(params) {
-  return /* @__PURE__ */ _xid(ZodXID, params);
+  return _xid(ZodXID, params);
 }
 var ZodKSUID = /* @__PURE__ */ $constructor("ZodKSUID", (inst, def) => {
   $ZodKSUID.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function ksuid2(params) {
-  return /* @__PURE__ */ _ksuid(ZodKSUID, params);
+  return _ksuid(ZodKSUID, params);
 }
 var ZodIPv4 = /* @__PURE__ */ $constructor("ZodIPv4", (inst, def) => {
   $ZodIPv4.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function ipv42(params) {
-  return /* @__PURE__ */ _ipv4(ZodIPv4, params);
+  return _ipv4(ZodIPv4, params);
 }
 var ZodMAC = /* @__PURE__ */ $constructor("ZodMAC", (inst, def) => {
   $ZodMAC.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function mac2(params) {
-  return /* @__PURE__ */ _mac(ZodMAC, params);
+  return _mac(ZodMAC, params);
 }
 var ZodIPv6 = /* @__PURE__ */ $constructor("ZodIPv6", (inst, def) => {
   $ZodIPv6.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function ipv62(params) {
-  return /* @__PURE__ */ _ipv6(ZodIPv6, params);
+  return _ipv6(ZodIPv6, params);
 }
 var ZodCIDRv4 = /* @__PURE__ */ $constructor("ZodCIDRv4", (inst, def) => {
   $ZodCIDRv4.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function cidrv42(params) {
-  return /* @__PURE__ */ _cidrv4(ZodCIDRv4, params);
+  return _cidrv4(ZodCIDRv4, params);
 }
 var ZodCIDRv6 = /* @__PURE__ */ $constructor("ZodCIDRv6", (inst, def) => {
   $ZodCIDRv6.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function cidrv62(params) {
-  return /* @__PURE__ */ _cidrv6(ZodCIDRv6, params);
+  return _cidrv6(ZodCIDRv6, params);
 }
 var ZodBase64 = /* @__PURE__ */ $constructor("ZodBase64", (inst, def) => {
   $ZodBase64.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function base642(params) {
-  return /* @__PURE__ */ _base64(ZodBase64, params);
+  return _base64(ZodBase64, params);
 }
 var ZodBase64URL = /* @__PURE__ */ $constructor("ZodBase64URL", (inst, def) => {
   $ZodBase64URL.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function base64url2(params) {
-  return /* @__PURE__ */ _base64url(ZodBase64URL, params);
+  return _base64url(ZodBase64URL, params);
 }
 var ZodE164 = /* @__PURE__ */ $constructor("ZodE164", (inst, def) => {
   $ZodE164.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function e1642(params) {
-  return /* @__PURE__ */ _e164(ZodE164, params);
+  return _e164(ZodE164, params);
 }
 var ZodCreditCard = /* @__PURE__ */ $constructor("ZodCreditCard", (inst, def) => {
   $ZodCreditCard.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function creditCard2(params) {
-  return /* @__PURE__ */ _creditCard(ZodCreditCard, params);
+  return _creditCard(ZodCreditCard, params);
 }
 var ZodIBAN = /* @__PURE__ */ $constructor("ZodIBAN", (inst, def) => {
   $ZodIBAN.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function iban2(params) {
-  return /* @__PURE__ */ _iban(ZodIBAN, params);
+  return _iban(ZodIBAN, params);
 }
 var ZodJWT = /* @__PURE__ */ $constructor("ZodJWT", (inst, def) => {
   $ZodJWT.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function jwt(params) {
-  return /* @__PURE__ */ _jwt(ZodJWT, params);
+  return _jwt(ZodJWT, params);
 }
 var ZodCustomStringFormat = /* @__PURE__ */ $constructor("ZodCustomStringFormat", (inst, def) => {
   $ZodCustomStringFormat.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
 function stringFormat(format, fnOrRegex, _params = {}) {
-  return /* @__PURE__ */ _stringFormat(ZodCustomStringFormat, format, fnOrRegex, _params);
+  return _stringFormat(ZodCustomStringFormat, format, fnOrRegex, _params);
 }
 function hostname2(_params) {
-  return /* @__PURE__ */ _stringFormat(ZodCustomStringFormat, "hostname", regexes_exports.hostname, _params);
+  return _stringFormat(ZodCustomStringFormat, "hostname", regexes_exports.hostname, _params);
 }
 function hex2(_params) {
-  return /* @__PURE__ */ _stringFormat(ZodCustomStringFormat, "hex", regexes_exports.hex, _params);
+  return _stringFormat(ZodCustomStringFormat, "hex", regexes_exports.hex, _params);
 }
 function hash(alg, params) {
   const enc = params?.enc ?? "hex";
@@ -17565,7 +17735,7 @@ function hash(alg, params) {
   const regex = regexes_exports[format];
   if (!regex)
     throw new Error(`Unrecognized hash format: ${format}`);
-  return /* @__PURE__ */ _stringFormat(ZodCustomStringFormat, format, regex, params);
+  return _stringFormat(ZodCustomStringFormat, format, regex, params);
 }
 var ZodNumber = /* @__PURE__ */ $constructor(
   "ZodNumber",
@@ -17591,22 +17761,22 @@ var ZodNumber = /* @__PURE__ */ $constructor(
     format: (inst) => aggregateChecks(inst).format ?? null
   }, {
     gt(value, params) {
-      return this.check(/* @__PURE__ */ _gt(value, params));
+      return this.check(_gt(value, params));
     },
     gte(value, params) {
-      return this.check(/* @__PURE__ */ _gte(value, params));
+      return this.check(_gte(value, params));
     },
     min(value, params) {
-      return this.check(/* @__PURE__ */ _gte(value, params));
+      return this.check(_gte(value, params));
     },
     lt(value, params) {
-      return this.check(/* @__PURE__ */ _lt(value, params));
+      return this.check(_lt(value, params));
     },
     lte(value, params) {
-      return this.check(/* @__PURE__ */ _lte(value, params));
+      return this.check(_lte(value, params));
     },
     max(value, params) {
-      return this.check(/* @__PURE__ */ _lte(value, params));
+      return this.check(_lte(value, params));
     },
     int(params) {
       return this.check(int(params));
@@ -17615,22 +17785,22 @@ var ZodNumber = /* @__PURE__ */ $constructor(
       return this.check(int(params));
     },
     positive(params) {
-      return this.check(/* @__PURE__ */ _gt(0, params));
+      return this.check(_gt(0, params));
     },
     nonnegative(params) {
-      return this.check(/* @__PURE__ */ _gte(0, params));
+      return this.check(_gte(0, params));
     },
     negative(params) {
-      return this.check(/* @__PURE__ */ _lt(0, params));
+      return this.check(_lt(0, params));
     },
     nonpositive(params) {
-      return this.check(/* @__PURE__ */ _lte(0, params));
+      return this.check(_lte(0, params));
     },
     multipleOf(value, params) {
-      return this.check(/* @__PURE__ */ _multipleOf(value, params));
+      return this.check(_multipleOf(value, params));
     },
     step(value, params) {
-      return this.check(/* @__PURE__ */ _multipleOf(value, params));
+      return this.check(_multipleOf(value, params));
     },
     finite() {
       return this;
@@ -17638,26 +17808,26 @@ var ZodNumber = /* @__PURE__ */ $constructor(
   })
 );
 function number2(params) {
-  return /* @__PURE__ */ _number(ZodNumber, params);
+  return _number(ZodNumber, params);
 }
 var ZodNumberFormat = /* @__PURE__ */ $constructor("ZodNumberFormat", (inst, def) => {
   $ZodNumberFormat.init(inst, def);
   ZodNumber.init(inst, def);
 });
 function int(params) {
-  return /* @__PURE__ */ _int(ZodNumberFormat, params);
+  return _int(ZodNumberFormat, params);
 }
 function float32(params) {
-  return /* @__PURE__ */ _float32(ZodNumberFormat, params);
+  return _float32(ZodNumberFormat, params);
 }
 function float64(params) {
-  return /* @__PURE__ */ _float64(ZodNumberFormat, params);
+  return _float64(ZodNumberFormat, params);
 }
 function int32(params) {
-  return /* @__PURE__ */ _int32(ZodNumberFormat, params);
+  return _int32(ZodNumberFormat, params);
 }
 function uint32(params) {
-  return /* @__PURE__ */ _uint32(ZodNumberFormat, params);
+  return _uint32(ZodNumberFormat, params);
 }
 var ZodBoolean = /* @__PURE__ */ $constructor("ZodBoolean", (inst, def) => {
   $ZodBoolean.init(inst, def);
@@ -17665,7 +17835,7 @@ var ZodBoolean = /* @__PURE__ */ $constructor("ZodBoolean", (inst, def) => {
   inst._zod.processJSONSchema = (ctx, json2, params) => booleanProcessor(inst, ctx, json2, params);
 });
 function boolean2(params) {
-  return /* @__PURE__ */ _boolean(ZodBoolean, params);
+  return _boolean(ZodBoolean, params);
 }
 var ZodBigInt = /* @__PURE__ */ $constructor(
   "ZodBigInt",
@@ -17680,52 +17850,52 @@ var ZodBigInt = /* @__PURE__ */ $constructor(
     format: (inst) => aggregateChecks(inst).format ?? null
   }, {
     gte(value, params) {
-      return this.check(/* @__PURE__ */ _gte(value, params));
+      return this.check(_gte(value, params));
     },
     min(value, params) {
-      return this.check(/* @__PURE__ */ _gte(value, params));
+      return this.check(_gte(value, params));
     },
     gt(value, params) {
-      return this.check(/* @__PURE__ */ _gt(value, params));
+      return this.check(_gt(value, params));
     },
     lt(value, params) {
-      return this.check(/* @__PURE__ */ _lt(value, params));
+      return this.check(_lt(value, params));
     },
     lte(value, params) {
-      return this.check(/* @__PURE__ */ _lte(value, params));
+      return this.check(_lte(value, params));
     },
     max(value, params) {
-      return this.check(/* @__PURE__ */ _lte(value, params));
+      return this.check(_lte(value, params));
     },
     positive(params) {
-      return this.check(/* @__PURE__ */ _gt(BigInt(0), params));
+      return this.check(_gt(BigInt(0), params));
     },
     negative(params) {
-      return this.check(/* @__PURE__ */ _lt(BigInt(0), params));
+      return this.check(_lt(BigInt(0), params));
     },
     nonpositive(params) {
-      return this.check(/* @__PURE__ */ _lte(BigInt(0), params));
+      return this.check(_lte(BigInt(0), params));
     },
     nonnegative(params) {
-      return this.check(/* @__PURE__ */ _gte(BigInt(0), params));
+      return this.check(_gte(BigInt(0), params));
     },
     multipleOf(value, params) {
-      return this.check(/* @__PURE__ */ _multipleOf(value, params));
+      return this.check(_multipleOf(value, params));
     }
   })
 );
 function bigint2(params) {
-  return /* @__PURE__ */ _bigint(ZodBigInt, params);
+  return _bigint(ZodBigInt, params);
 }
 var ZodBigIntFormat = /* @__PURE__ */ $constructor("ZodBigIntFormat", (inst, def) => {
   $ZodBigIntFormat.init(inst, def);
   ZodBigInt.init(inst, def);
 });
 function int64(params) {
-  return /* @__PURE__ */ _int64(ZodBigIntFormat, params);
+  return _int64(ZodBigIntFormat, params);
 }
 function uint64(params) {
-  return /* @__PURE__ */ _uint64(ZodBigIntFormat, params);
+  return _uint64(ZodBigIntFormat, params);
 }
 var ZodSymbol = /* @__PURE__ */ $constructor("ZodSymbol", (inst, def) => {
   $ZodSymbol.init(inst, def);
@@ -17733,7 +17903,7 @@ var ZodSymbol = /* @__PURE__ */ $constructor("ZodSymbol", (inst, def) => {
   inst._zod.processJSONSchema = (ctx, json2, params) => symbolProcessor(inst, ctx, json2, params);
 });
 function symbol(params) {
-  return /* @__PURE__ */ _symbol(ZodSymbol, params);
+  return _symbol(ZodSymbol, params);
 }
 var ZodUndefined = /* @__PURE__ */ $constructor("ZodUndefined", (inst, def) => {
   $ZodUndefined.init(inst, def);
@@ -17741,7 +17911,7 @@ var ZodUndefined = /* @__PURE__ */ $constructor("ZodUndefined", (inst, def) => {
   inst._zod.processJSONSchema = (ctx, json2, params) => undefinedProcessor(inst, ctx, json2, params);
 });
 function _undefined3(params) {
-  return /* @__PURE__ */ _undefined2(ZodUndefined, params);
+  return _undefined2(ZodUndefined, params);
 }
 var ZodNull = /* @__PURE__ */ $constructor("ZodNull", (inst, def) => {
   $ZodNull.init(inst, def);
@@ -17749,7 +17919,7 @@ var ZodNull = /* @__PURE__ */ $constructor("ZodNull", (inst, def) => {
   inst._zod.processJSONSchema = (ctx, json2, params) => nullProcessor(inst, ctx, json2, params);
 });
 function _null3(params) {
-  return /* @__PURE__ */ _null2(ZodNull, params);
+  return _null2(ZodNull, params);
 }
 var ZodAny = /* @__PURE__ */ $constructor("ZodAny", (inst, def) => {
   $ZodAny.init(inst, def);
@@ -17757,7 +17927,7 @@ var ZodAny = /* @__PURE__ */ $constructor("ZodAny", (inst, def) => {
   inst._zod.processJSONSchema = (ctx, json2, params) => anyProcessor(inst, ctx, json2, params);
 });
 function any() {
-  return /* @__PURE__ */ _any(ZodAny);
+  return _any(ZodAny);
 }
 var ZodUnknown = /* @__PURE__ */ $constructor("ZodUnknown", (inst, def) => {
   $ZodUnknown.init(inst, def);
@@ -17765,7 +17935,7 @@ var ZodUnknown = /* @__PURE__ */ $constructor("ZodUnknown", (inst, def) => {
   inst._zod.processJSONSchema = (ctx, json2, params) => unknownProcessor(inst, ctx, json2, params);
 });
 function unknown() {
-  return /* @__PURE__ */ _unknown(ZodUnknown);
+  return _unknown(ZodUnknown);
 }
 var ZodNever = /* @__PURE__ */ $constructor("ZodNever", (inst, def) => {
   $ZodNever.init(inst, def);
@@ -17773,7 +17943,7 @@ var ZodNever = /* @__PURE__ */ $constructor("ZodNever", (inst, def) => {
   inst._zod.processJSONSchema = (ctx, json2, params) => neverProcessor(inst, ctx, json2, params);
 });
 function never(params) {
-  return /* @__PURE__ */ _never(ZodNever, params);
+  return _never(ZodNever, params);
 }
 var ZodVoid = /* @__PURE__ */ $constructor("ZodVoid", (inst, def) => {
   $ZodVoid.init(inst, def);
@@ -17781,7 +17951,7 @@ var ZodVoid = /* @__PURE__ */ $constructor("ZodVoid", (inst, def) => {
   inst._zod.processJSONSchema = (ctx, json2, params) => voidProcessor(inst, ctx, json2, params);
 });
 function _void2(params) {
-  return /* @__PURE__ */ _void(ZodVoid, params);
+  return _void(ZodVoid, params);
 }
 var ZodDate = /* @__PURE__ */ $constructor(
   "ZodDate",
@@ -17789,8 +17959,8 @@ var ZodDate = /* @__PURE__ */ $constructor(
     $ZodDate.init(inst, def);
     ZodType.init(inst, def);
     inst._zod.processJSONSchema = (ctx, json2, params) => dateProcessor(inst, ctx, json2, params);
-    inst.min = (value, params) => inst.check(/* @__PURE__ */ _gte(value, params));
-    inst.max = (value, params) => inst.check(/* @__PURE__ */ _lte(value, params));
+    inst.min = (value, params) => inst.check(_gte(value, params));
+    inst.max = (value, params) => inst.check(_lte(value, params));
   },
   /* @__PURE__ */ util_exports.derived({
     minDate: (inst) => {
@@ -17804,7 +17974,7 @@ var ZodDate = /* @__PURE__ */ $constructor(
   }, {})
 );
 function date2(params) {
-  return /* @__PURE__ */ _date(ZodDate, params);
+  return _date(ZodDate, params);
 }
 var ZodArray = /* @__PURE__ */ $constructor("ZodArray", (inst, def) => {
   _ensureDefaultMemoizer();
@@ -17814,23 +17984,23 @@ var ZodArray = /* @__PURE__ */ $constructor("ZodArray", (inst, def) => {
   inst.element = def.element;
 }, {
   min(n, params) {
-    return this.check(/* @__PURE__ */ _minLength(n, params));
+    return this.check(_minLength(n, params));
   },
   nonempty(params) {
-    return this.check(/* @__PURE__ */ _minLength(1, params));
+    return this.check(_minLength(1, params));
   },
   max(n, params) {
-    return this.check(/* @__PURE__ */ _maxLength(n, params));
+    return this.check(_maxLength(n, params));
   },
   length(n, params) {
-    return this.check(/* @__PURE__ */ _length(n, params));
+    return this.check(_length(n, params));
   },
   unwrap() {
     return this.element;
   }
 });
 function array(element, params) {
-  return /* @__PURE__ */ _array(ZodArray, element, params);
+  return _array(ZodArray, element, params);
 }
 function keyof(schema) {
   const shape = schema._zod.def.shape;
@@ -18043,10 +18213,10 @@ var ZodMap = /* @__PURE__ */ $constructor("ZodMap", (inst, def) => {
   inst._zod.processJSONSchema = (ctx, json2, params) => mapProcessor(inst, ctx, json2, params);
   inst.keyType = def.keyType;
   inst.valueType = def.valueType;
-  inst.min = (...args) => inst.check(/* @__PURE__ */ _minSize(...args));
-  inst.nonempty = (params) => inst.check(/* @__PURE__ */ _minSize(1, params));
-  inst.max = (...args) => inst.check(/* @__PURE__ */ _maxSize(...args));
-  inst.size = (...args) => inst.check(/* @__PURE__ */ _size(...args));
+  inst.min = (...args) => inst.check(_minSize(...args));
+  inst.nonempty = (params) => inst.check(_minSize(1, params));
+  inst.max = (...args) => inst.check(_maxSize(...args));
+  inst.size = (...args) => inst.check(_size(...args));
 });
 function map(keyType, valueType, params) {
   return new ZodMap({
@@ -18061,10 +18231,10 @@ var ZodSet = /* @__PURE__ */ $constructor("ZodSet", (inst, def) => {
   $ZodSet.init(inst, def);
   ZodType.init(inst, def);
   inst._zod.processJSONSchema = (ctx, json2, params) => setProcessor(inst, ctx, json2, params);
-  inst.min = (...args) => inst.check(/* @__PURE__ */ _minSize(...args));
-  inst.nonempty = (params) => inst.check(/* @__PURE__ */ _minSize(1, params));
-  inst.max = (...args) => inst.check(/* @__PURE__ */ _maxSize(...args));
-  inst.size = (...args) => inst.check(/* @__PURE__ */ _size(...args));
+  inst.min = (...args) => inst.check(_minSize(...args));
+  inst.nonempty = (params) => inst.check(_minSize(1, params));
+  inst.max = (...args) => inst.check(_maxSize(...args));
+  inst.size = (...args) => inst.check(_size(...args));
 });
 function set(valueType, params) {
   return new ZodSet({
@@ -18151,12 +18321,12 @@ var ZodFile = /* @__PURE__ */ $constructor("ZodFile", (inst, def) => {
   $ZodFile.init(inst, def);
   ZodType.init(inst, def);
   inst._zod.processJSONSchema = (ctx, json2, params) => fileProcessor(inst, ctx, json2, params);
-  inst.min = (size, params) => inst.check(/* @__PURE__ */ _minSize(size, params));
-  inst.max = (size, params) => inst.check(/* @__PURE__ */ _maxSize(size, params));
-  inst.mime = (types, params) => inst.check(/* @__PURE__ */ _mime(Array.isArray(types) ? types : [types], params));
+  inst.min = (size, params) => inst.check(_minSize(size, params));
+  inst.max = (size, params) => inst.check(_maxSize(size, params));
+  inst.mime = (types, params) => inst.check(_mime(Array.isArray(types) ? types : [types], params));
 });
 function file(params) {
-  return /* @__PURE__ */ _file(ZodFile, params);
+  return _file(ZodFile, params);
 }
 var ZodTransform = /* @__PURE__ */ $constructor("ZodTransform", (inst, def) => {
   _ensureDefaultMemoizer();
@@ -18313,7 +18483,7 @@ var ZodNaN = /* @__PURE__ */ $constructor("ZodNaN", (inst, def) => {
   inst._zod.processJSONSchema = (ctx, json2, params) => nanProcessor(inst, ctx, json2, params);
 });
 function nan(params) {
-  return /* @__PURE__ */ _nan(ZodNaN, params);
+  return _nan(ZodNaN, params);
 }
 var ZodPipe = /* @__PURE__ */ $constructor("ZodPipe", (inst, def) => {
   $ZodPipe.init(inst, def);
@@ -18428,7 +18598,7 @@ var ZodProperties = /* @__PURE__ */ $constructor("ZodProperties", (inst, def) =>
   ZodType.init(inst, def);
 });
 function properties(shape, params) {
-  return /* @__PURE__ */ _properties(ZodProperties, shape, params);
+  return _properties(ZodProperties, shape, params);
 }
 function check(fn) {
   const ch = new $ZodCheck({
@@ -18439,13 +18609,13 @@ function check(fn) {
   return ch;
 }
 function custom(fn, _params) {
-  return /* @__PURE__ */ _custom(ZodCustom, fn ?? (() => true), _params);
+  return _custom(ZodCustom, fn ?? (() => true), _params);
 }
 function refine(fn, _params = {}) {
-  return /* @__PURE__ */ _refine(ZodCustom, fn, _params);
+  return _refine(ZodCustom, fn, _params);
 }
 function superRefine(fn, params) {
-  return /* @__PURE__ */ _superRefine(fn, params);
+  return _superRefine(fn, params);
 }
 var describe2 = describe;
 var meta2 = meta;
@@ -18478,7 +18648,7 @@ function _instanceof(cls, params = {}) {
   };
   return inst;
 }
-var stringbool = (...args) => /* @__PURE__ */ _stringbool({
+var stringbool = (...args) => _stringbool({
   Codec: ZodCodec,
   Boolean: ZodBoolean,
   String: ZodString
@@ -18496,6 +18666,8 @@ function preprocess(fn, schema) {
     out: schema
   });
 }
+
+// node_modules/zod/v4/classic/compat.js
 var ZodIssueCode = {
   invalid_type: "invalid_type",
   too_big: "too_big",
@@ -18520,6 +18692,8 @@ function getErrorMap() {
 var ZodFirstPartyTypeKind;
 /* @__PURE__ */ (function(ZodFirstPartyTypeKind2) {
 })(ZodFirstPartyTypeKind || (ZodFirstPartyTypeKind = {}));
+
+// node_modules/zod/v4/classic/iso.js
 var iso_exports = {};
 __export(iso_exports, {
   ZodISODate: () => ZodISODate,
@@ -18532,17 +18706,19 @@ __export(iso_exports, {
   time: () => time2
 });
 function datetime2(params) {
-  return /* @__PURE__ */ _isoDateTime(ZodISODateTime, params);
+  return _isoDateTime(ZodISODateTime, params);
 }
 function date3(params) {
-  return /* @__PURE__ */ _isoDate(ZodISODate, params);
+  return _isoDate(ZodISODate, params);
 }
 function time2(params) {
-  return /* @__PURE__ */ _isoTime(ZodISOTime, params);
+  return _isoTime(ZodISOTime, params);
 }
 function duration2(params) {
-  return /* @__PURE__ */ _isoDuration(ZodISODuration, params);
+  return _isoDuration(ZodISODuration, params);
 }
+
+// node_modules/zod/v4/classic/from-json-schema.js
 var z = {
   ...schemas_exports2,
   ...checks_exports2,
@@ -19274,6 +19450,8 @@ function fromJSONSchema(schema, params) {
   };
   return convertSchema(normalized, ctx);
 }
+
+// node_modules/zod/v4/core/visit.js
 var RESOLVING = /* @__PURE__ */ Symbol("z.visit/resolving");
 function visit(schema, fnOrHandlers) {
   const fn = typeof fnOrHandlers === "function" ? fnOrHandlers : (node2, rewritten) => {
@@ -19439,6 +19617,8 @@ function visit(schema, fnOrHandlers) {
   }
   return run(schema);
 }
+
+// node_modules/zod/v4/classic/deep-partial.js
 function deepPartial(schema) {
   return visit(schema, {
     object: (s) => s.partial(),
@@ -19449,6 +19629,8 @@ function deepPartial(schema) {
     }
   });
 }
+
+// node_modules/zod/v4/classic/in-out.js
 function withChecks(side, checks) {
   if (!checks?.length)
     return side;
@@ -19477,6 +19659,8 @@ function output(schema) {
     prefault: (s, rewritten) => rewritten ? s._zod.def.innerType : s
   });
 }
+
+// node_modules/zod/v4/classic/coerce.js
 var coerce_exports = {};
 __export(coerce_exports, {
   bigint: () => bigint3,
@@ -19486,20 +19670,22 @@ __export(coerce_exports, {
   string: () => string3
 });
 function string3(params) {
-  return /* @__PURE__ */ _coercedString(ZodString, params);
+  return _coercedString(ZodString, params);
 }
 function number3(params) {
-  return /* @__PURE__ */ _coercedNumber(ZodNumber, params);
+  return _coercedNumber(ZodNumber, params);
 }
 function boolean3(params) {
-  return /* @__PURE__ */ _coercedBoolean(ZodBoolean, params);
+  return _coercedBoolean(ZodBoolean, params);
 }
 function bigint3(params) {
-  return /* @__PURE__ */ _coercedBigint(ZodBigInt, params);
+  return _coercedBigint(ZodBigInt, params);
 }
 function date4(params) {
-  return /* @__PURE__ */ _coercedDate(ZodDate, params);
+  return _coercedDate(ZodDate, params);
 }
+
+// server/contract.ts
 var rpcContract = defineRpcContract({
   ensure_lazygit_tab: {
     input: external_exports.object({
@@ -19568,6 +19754,8 @@ var rpcContract = defineRpcContract({
     output: external_exports.object({ ok: external_exports.boolean() })
   }
 });
+
+// server/env.ts
 var COMMAND_POLL_MS = 500;
 var COMMAND_WAIT_MS = 3e4;
 function createEnvironment(bb) {
@@ -19604,6 +19792,8 @@ function createEnvironment(bb) {
   }
   return { threadEnvironmentId, runEnvironmentCommand };
 }
+
+// server/repo.ts
 function createRepo(bb, deps) {
   async function environmentIsGitRepo(environmentId) {
     const exitCode = await deps.env.runEnvironmentCommand(
@@ -19628,6 +19818,8 @@ function createRepo(bb, deps) {
   }
   return { environmentIsGitRepo, initRepo };
 }
+
+// server/state.ts
 var STATE_KEY = "threads";
 var STATE_MAX_THREADS = 500;
 function createPluginState(bb) {
@@ -19665,6 +19857,8 @@ function createPluginState(bb) {
   }
   return { read, write, recordThread, clearThreadTerminal };
 }
+
+// server/constants.ts
 var PLUGIN_ID = "lazygit";
 var PANEL_ACTION_ID = "lazygit";
 var TAB_TITLE = "Lazygit";
@@ -19673,6 +19867,8 @@ var LEGACY_TERMINAL_TAB_ID = "lazygit";
 var PLUGIN_PANEL_TAB_ID = `plugin-panel:${encodeURIComponent(
   `${PLUGIN_ID}:${PANEL_ACTION_ID}:`
 )}:none`;
+
+// server/tabs.ts
 var TAB_INIT_POLL_MS = 400;
 var TAB_INIT_WAIT_MS = 15e3;
 var CAS_MAX_ATTEMPTS = 5;
@@ -19765,6 +19961,8 @@ function createTabManager(bb, deps) {
   }
   return { ensure, isOurPanelTab };
 }
+
+// lib/base64.ts
 function decodeBase64Bytes(value) {
   const binary = atob(value);
   const bytes = new Uint8Array(binary.length);
@@ -19776,6 +19974,8 @@ function decodeBase64Bytes(value) {
 function decodeBase64ToUtf8(value) {
   return new TextDecoder().decode(decodeBase64Bytes(value));
 }
+
+// server/terminal.ts
 var NOT_A_REPO_MARKERS = ["not in a git repository", "not a git repository"];
 var REPO_PROMPT_TAIL_BYTES = 8192;
 function createTerminalManager(bb, deps) {
@@ -19853,6 +20053,8 @@ function createTerminalManager(bb, deps) {
   }
   return { isAlive, sessionStuckAtRepoPrompt, attach };
 }
+
+// server.ts
 async function plugin(bb) {
   bb.log.info("loaded");
   const settings = bb.settings.define({
