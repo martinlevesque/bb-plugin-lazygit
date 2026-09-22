@@ -26,7 +26,7 @@ Everything runs locally: no account, API key, or external service.
 your `PATH`.
 
 ```
-bb plugin install bb-plugin-lazygit
+bb plugin install lazygit
 ```
 
 ### From source
@@ -56,10 +56,10 @@ bb lazygit --thread <id>      # a specific thread
   tab. Override with a full path if lazygit is not on `PATH`.
 
 ```
-bb plugin config bb-plugin-lazygit                          # show current values
-bb plugin config bb-plugin-lazygit set autoOpen false
-bb plugin config bb-plugin-lazygit set command /opt/bin/lazygit
-bb plugin reload bb-plugin-lazygit
+bb plugin config lazygit                          # show current values
+bb plugin config lazygit set autoOpen false
+bb plugin config lazygit set command /opt/bin/lazygit
+bb plugin reload lazygit
 ```
 
 Settings are read once per load, so reload after changing them.
