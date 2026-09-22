@@ -6,6 +6,8 @@ bb-plugin-lazygit auto-creates a
 open — stage, commit, and inspect the worktree without leaving the thread.
 Everything runs locally: no account, API key, or external service.
 
+![Lazygit tab in the thread panel](docs/thread-panel.png)
+
 ## Features
 
 - **Automatic Lazygit tab** — a plugin-owned panel tab appears next to Thread
