@@ -14,6 +14,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
+
+      # npm outdated compares against the installed tree, so node_modules
+      # must exist — otherwise every package is reported as MISSING.
+      - run: npm ci
 
       # npm outdated exits 1 when updates are available -> job goes red.
       - name: Check for outdated packages
