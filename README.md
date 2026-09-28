@@ -1,5 +1,7 @@
 # bb-plugin-lazygit
 
+[![outdated-packages](https://github.com/martinlevesque/bb-plugin-lazygit/actions/workflows/outdated-packages.yml/badge.svg)](https://github.com/martinlevesque/bb-plugin-lazygit/actions/workflows/outdated-packages.yml)
+
 Reviewing a thread's work shouldn't mean reaching for a separate terminal.
 bb-plugin-lazygit auto-creates a
 [lazygit](https://github.com/jesseduffield/lazygit) tab on every thread you
