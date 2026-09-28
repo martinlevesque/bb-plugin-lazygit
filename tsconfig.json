@@ -21,6 +21,7 @@
     "skipLibCheck": false
   },
   "include": [
+    "globals.d.ts",
     "server.ts",
     "app.tsx",
     "server",
