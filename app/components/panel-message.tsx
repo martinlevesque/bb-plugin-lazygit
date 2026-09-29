@@ -1,5 +1,7 @@
 // app/components/panel-message.tsx — the centered panel placeholder shown
 // over the terminal while lazygit cannot run (not a repo, exited, error).
+import { Button } from "../../components/ui/button";
+
 export function PanelMessage({
   title,
   detail,
@@ -14,19 +16,20 @@ export function PanelMessage({
   disabled?: boolean;
 }) {
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col items-center justify-center gap-3 bg-background p-6 text-center">
+    <div className="flex h-full min-h-0 flex-1 flex-col items-center justify-center gap-3 bg-sidebar p-6 text-center">
       <p className="text-sm font-medium text-foreground">{title}</p>
       {detail === null ? null : (
         <p className="max-w-md text-xs text-muted-foreground">{detail}</p>
       )}
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="sm"
         onClick={onAction}
         disabled={disabled}
-        className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground hover:bg-accent disabled:opacity-50"
       >
         {actionLabel}
-      </button>
+      </Button>
     </div>
   );
 }

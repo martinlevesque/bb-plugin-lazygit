@@ -9,7 +9,11 @@ inspect the worktree without leaving the thread.
   [lazygit](https://github.com/jesseduffield/lazygit) in that thread's
   worktree. The process starts lazily the first time you activate the tab.
 - A **persistent session** — switching tabs keeps the lazygit process alive,
-  so your scrollback and state are still there when you come back.
+  and the terminal itself is parked rather than recreated, so switching back
+  paints the last frame instantly.
+- **Themed like bb's own terminal** — the screen reads the selected bb
+  theme's terminal variables (ANSI palette, ground, selection, font) and
+  follows palette and light/dark switches live.
 - A **Lazygit** row in the panel's Actions list, plus a `bb lazygit` command
   that brings the tab back after you closed it — or restarts it after you
   quit lazygit:
