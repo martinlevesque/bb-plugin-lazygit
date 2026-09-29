@@ -13,8 +13,13 @@ Everything runs locally: no account, API key, or external service.
 - **Automatic Lazygit tab** — a plugin-owned panel tab appears next to Thread
   Info and Diff in every thread you open, running lazygit in that thread's
   worktree. The process starts lazily the first time the tab is activated.
-- **Persistent session** — the lazygit session survives tab switches, so your
-  scrollback and state are still there when you come back.
+- **Persistent session** — the lazygit session survives tab switches, and the
+  rendered terminal is parked with it: switching back shows the last frame
+  instantly instead of replaying the screen.
+- **Follows your bb theme** — the terminal reads the selected theme's
+  variables (ANSI palette, sidebar ground, selection, `--font-terminal`),
+  exactly like bb's own terminal tabs, and repaints live when you switch
+  palette or light/dark mode.
 - **Non-git folders handled** — if the thread's environment is not a git
   repository, the tab offers to `git init` it instead of failing.
 - **Agent-friendly** — the bundled skill tells agents to open lazygit with

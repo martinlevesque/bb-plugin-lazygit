@@ -37,7 +37,7 @@ export function LazygitPanel({ threadId }: PluginThreadPanelProps) {
   );
 
   return (
-    <div className="relative h-full min-h-0 flex-1 overflow-hidden bg-background text-foreground">
+    <div className="relative h-full min-h-0 flex-1 overflow-hidden bg-sidebar text-foreground">
       <div ref={containerRef} className="h-full w-full pl-2 pt-1" />
       {phase.kind === "connecting" && showConnecting ? (
         <div className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
