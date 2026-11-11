@@ -3,7 +3,7 @@
 // use-lazygit-terminal hook) plus the placeholder overlays for the
 // connecting / no-repo / exited / error phases.
 import { useEffect, useState } from "react";
-import type { PluginThreadPanelProps } from "@get-bb/plugin-sdk/app";
+import type { ExperimentalThreadTabProps } from "@get-bb/plugin-sdk/app";
 import { useRpc } from "@get-bb/plugin-sdk/app";
 import type { rpcContract } from "../../server/contract";
 import { useLazygitTerminal } from "../hooks/use-lazygit-terminal";
@@ -27,7 +27,7 @@ function useDelayedFlag(active: boolean, delayMs: number): boolean {
   return flag;
 }
 
-export function LazygitPanel({ threadId }: PluginThreadPanelProps) {
+export function LazygitPanel({ threadId }: ExperimentalThreadTabProps) {
   const rpc = useRpc<typeof rpcContract>();
   const { containerRef, phase, initializing, restart, initRepo } =
     useLazygitTerminal(threadId, rpc);

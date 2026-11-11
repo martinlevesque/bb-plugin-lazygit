@@ -18,13 +18,15 @@ export default definePluginApp((app) => {
     component: AutoOpenOverlay,
   });
 
-  app.slots.threadPanelAction({
+  app.slots.experimental_tab({
+    context: { kind: "thread" },
+    availability: "action",
     id: "lazygit",
     title: "Lazygit",
     icon: "GitBranch",
     layout: "flush",
     component: LazygitPanel,
-    run: async ({ threadId, openPanel }) => {
+    run: async ({ threadId, experimental_panel }) => {
       try {
         await ensureLazygit(threadId, true);
       } catch (cause) {
@@ -37,7 +39,14 @@ export default definePluginApp((app) => {
       }
       // Host-native open: replaces the "New tab" launcher (or activates the
       // existing tab) and selects it.
-      openPanel({ title: "Lazygit" });
+      experimental_panel.openTab({
+        tab: {
+          id: "lazygit",
+          context: { kind: "thread" },
+          availability: "action",
+        },
+        title: "Lazygit",
+      });
     },
   });
 });
